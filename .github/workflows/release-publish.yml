@@ -2,20 +2,45 @@ name: Release & Publish Pipeline
 
 on:
   push:
-    tags:
-      - 'v*' # Trigger on version tags (e.g., v1.0.0, v1.0.1)
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  publish_mobile:
-    name: Build & Publish Mobile App
+  version:
+    name: Calculate Version & Tag
     runs-on: ubuntu-latest
-
+    outputs:
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+      new_version: ${{ steps.tag_version.outputs.new_version }}
+      changelog: ${{ steps.tag_version.outputs.changelog }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+          release_branches: main
+
+  build_android:
+    name: Build Android APK
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -36,19 +61,93 @@ jobs:
           cd mobile
           flutter build apk --release
 
-      - name: Publish to GitHub Releases
-        uses: softprops/action-gh-release@v1
+      - name: Stage Android Artifacts
+        run: |
+          mkdir -p build_output
+          cp mobile/build/app/outputs/flutter-apk/app-release.apk build_output/KiwiShare-Android-${{ needs.version.outputs.new_tag }}.apk
+          cp mobile/build/app/outputs/flutter-apk/app-release.apk build_output/app-release.apk
+
+      - name: Upload Android Artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: mobile/build/app/outputs/flutter-apk/app-release.apk
+          name: android-apk
+          path: build_output/
+
+  build_ios:
+    name: Build iOS Package
+    needs: version
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          cd mobile
+          flutter pub get
+
+      - name: Build iOS Application (No Codesign)
+        run: |
+          cd mobile
+          flutter build ios --release --no-codesign
+
+      - name: Package iOS App Bundle
+        run: |
+          mkdir -p build_output
+          cd mobile/build/ios/iphoneos
+          zip -r ../../../build_output/KiwiShare-iOS-${{ needs.version.outputs.new_tag }}.zip Runner.app
+
+      - name: Upload iOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-package
+          path: build_output/
+
+  publish_release:
+    name: Publish Release & Distribute
+    needs: [version, build_android, build_ios]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: ./release-assets
+
+      - name: Download iOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-package
+          path: ./release-assets
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.version.outputs.new_tag }}
+          name: Release ${{ needs.version.outputs.new_tag }}
+          body: ${{ needs.version.outputs.changelog }}
+          files: |
+            ./release-assets/KiwiShare-Android-${{ needs.version.outputs.new_tag }}.apk
+            ./release-assets/KiwiShare-iOS-${{ needs.version.outputs.new_tag }}.zip
           draft: false
           prerelease: false
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload to Firebase App Distribution
+        if: ${{ env.FIREBASE_TOKEN != '' && env.FIREBASE_APP_ID != '' }}
         uses: w9jds/firebase-action@v2.0.0
         with:
-          args: appdistribution:distribute mobile/build/app/outputs/flutter-apk/app-release.apk --app ${{ secrets.FIREBASE_APP_ID }}
+          args: appdistribution:distribute release-assets/app-release.apk --app ${{ secrets.FIREBASE_APP_ID }}
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
