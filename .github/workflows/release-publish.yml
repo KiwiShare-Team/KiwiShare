@@ -3,7 +3,7 @@ name: Release & Publish Pipeline
 on:
   push:
     branches:
-      - main
+      - '**'
   workflow_dispatch:
 
 permissions:
@@ -14,9 +14,9 @@ jobs:
     name: Calculate Version & Tag
     runs-on: ubuntu-latest
     outputs:
-      new_tag: ${{ steps.tag_version.outputs.new_tag }}
-      new_version: ${{ steps.tag_version.outputs.new_version }}
-      changelog: ${{ steps.tag_version.outputs.changelog }}
+      new_tag: ${{ steps.tag_version.outputs.new_tag || steps.branch_version.outputs.new_tag }}
+      new_version: ${{ steps.tag_version.outputs.new_version || steps.branch_version.outputs.new_version }}
+      changelog: ${{ steps.tag_version.outputs.changelog || steps.branch_version.outputs.changelog }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,11 +25,22 @@ jobs:
 
       - name: Bump version and push tag
         id: tag_version
+        if: ${{ github.ref_name == 'main' }}
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: patch
           release_branches: main
+
+      - name: Generate branch build metadata
+        id: branch_version
+        if: ${{ github.ref_name != 'main' }}
+        run: |
+          SAFE_BRANCH="${GITHUB_REF_NAME//\//-}"
+          BUILD_TAG="${SAFE_BRANCH}-${GITHUB_SHA::7}"
+          echo "new_tag=${BUILD_TAG}" >> "$GITHUB_OUTPUT"
+          echo "new_version=${BUILD_TAG}" >> "$GITHUB_OUTPUT"
+          echo "changelog=Branch build for ${GITHUB_REF_NAME} (${GITHUB_SHA::7})" >> "$GITHUB_OUTPUT"
 
   build_android:
     name: Build Android APK
@@ -111,6 +122,7 @@ jobs:
 
   publish_release:
     name: Publish Release & Distribute
+    if: ${{ github.ref_name == 'main' }}
     needs: [version, build_android, build_ios]
     runs-on: ubuntu-latest
     steps:
