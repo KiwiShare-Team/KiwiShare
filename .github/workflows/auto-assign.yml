@@ -1,0 +1,48 @@
+name: Auto Assign PR Reviewers
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  auto_assign_reviewers:
+    name: Assign Team Reviewers
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Request Reviewers via GitHub API
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const teamReviewers = [
+              'yaohuangguan',
+              '9yen',
+              'ruiwang213',
+              'jennyyinUOA',
+              'ArthurMorgan750'
+            ];
+            
+            const prAuthor = context.payload.pull_request.user.login;
+            
+            // Filter out the PR author so GitHub API does not throw an error
+            const targetReviewers = teamReviewers.filter(
+              reviewer => reviewer.toLowerCase() !== prAuthor.toLowerCase()
+            );
+
+            if (targetReviewers.length > 0) {
+              console.log(`Requesting reviews from: ${targetReviewers.join(', ')}`);
+              try {
+                await github.rest.pulls.requestReviewers({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.payload.pull_request.number,
+                  reviewers: targetReviewers
+                });
+                console.log('Successfully requested reviewers!');
+              } catch (error) {
+                console.warn('Failed to assign reviewers:', error.message);
+              }
+            }
