@@ -110,6 +110,32 @@ Publishes a new listing to the marketplace (Requires Authorization Header).
   }
   ```
 
+### `GET /api/listings/:id`
+Fetches one visible listing and the public seller context required by the item detail page.
+
+* **Success Response (200 OK)**:
+  ```json
+  {
+    "id": "item_uuid_99",
+    "title": "Retro Armchair",
+    "description": "A comfortable pre-loved armchair.",
+    "condition": "good",
+    "priceNzd": "45",
+    "location": "Central, Auckland",
+    "imageUrl": "https://...",
+    "imageUrls": ["https://..."],
+    "isSustainable": true,
+    "category": "Furniture",
+    "status": "active",
+    "ownerId": "user_uid_123",
+    "sellerName": "Sam",
+    "sellerAvatarUrl": "https://...",
+    "sellerRating": 4.8,
+    "sellerReviewCount": 12
+  }
+  ```
+* **Not Found (404)**: Returned for an unknown, hidden, draft, or deleted listing.
+
 ---
 
 ## 3. Transaction & QR Handover Endpoints
