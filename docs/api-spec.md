@@ -136,6 +136,29 @@ Fetches one visible listing and the public seller context required by the item d
   ```
 * **Not Found (404)**: Returned for an unknown, hidden, draft, or deleted listing.
 
+### `PUT /api/listings/:id`
+Updates an active or reserved listing. The authenticated user must own the listing.
+
+* **Headers**:
+  - `Authorization: Bearer <JWT_TOKEN>`
+* **Payload**:
+  ```json
+  {
+    "title": "Retro Armchair",
+    "description": "A comfortable pre-loved armchair.",
+    "condition": "good",
+    "category": "Furniture",
+    "priceNzd": "45",
+    "location": "Central, Auckland",
+    "negotiable": true,
+    "isSustainable": true
+  }
+  ```
+* **Success Response (200 OK)**: `{ "status": "updated", "item": { ... } }`
+* **Validation Error (400)**: The editable listing fields are invalid.
+* **Unauthorized/Forbidden (401/403)**: Missing token or the caller does not own the listing.
+* **Not Found (404)**: The listing is unknown or is not editable in its current state.
+
 ---
 
 ## 3. Transaction & QR Handover Endpoints
