@@ -159,6 +159,21 @@ Updates an active or reserved listing. The authenticated user must own the listi
 * **Unauthorized/Forbidden (401/403)**: Missing token or the caller does not own the listing.
 * **Not Found (404)**: The listing is unknown or is not editable in its current state.
 
+### `DELETE /api/listings/:id`
+Soft-deletes an active or reserved listing. The authenticated user must own the listing. Retained trade, report, review, and audit records are not removed.
+
+* **Headers**:
+  - `Authorization: Bearer <JWT_TOKEN>`
+* **Success Response (200 OK)**:
+  ```json
+  {
+    "status": "deleted",
+    "message": "Listing deleted successfully."
+  }
+  ```
+* **Unauthorized/Forbidden (401/403)**: Missing token or the caller does not own the listing.
+* **Not Found (404)**: The listing is unknown or cannot be deleted in its current state.
+
 ---
 
 ## 3. Transaction & QR Handover Endpoints
