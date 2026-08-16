@@ -9,6 +9,16 @@ import 'package:flutter/foundation.dart'
 /// This is a placeholder file to enable compilation. Run `flutterfire configure`
 /// to link your actual Firebase project and overwrite this file.
 class DefaultFirebaseOptions {
+  static bool get isConfigured {
+    try {
+      final opts = currentPlatform;
+      return !opts.apiKey.contains('placeholder') &&
+          !opts.appId.contains('placeholder');
+    } catch (_) {
+      return false;
+    }
+  }
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;
