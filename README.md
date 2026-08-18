@@ -27,7 +27,7 @@ kiwishare/
 ├── docs/schemas/              # Data contract JSON schemas
 │   ├── user.schema.json
 │   └── item.schema.json
-├── functions/                 # Backend REST gateway (Node.js + Koa + TypeScript)
+├── server/                    # Backend RESTful Server (Node.js + Koa + TypeScript + MongoDB)
 │   ├── src/                   # Source controllers & middlewares
 │   ├── test/                  # Jest integration test suite
 │   ├── package.json
@@ -65,24 +65,33 @@ Perform codebase checks (ESLint for backend TS, and Flutter analyzer for mobile 
 pnpm lint:all
 ```
 
-### Step 4: Running Locally (One-Click Concurrent Development)
-Start both the backend development hot-reload server and the Flutter client simultaneously using the single command:
-```bash
-pnpm dev
-```
+### Step 4: Running the App
+
+* **Connect directly to deployed Cloud Backend (`https://kiwishare.onrender.com`)**:
+  ```bash
+  pnpm dev
+  ```
+* **Full-stack Local Development (Starts local Koa + MongoDB server & mobile concurrently)**:
+  ```bash
+  pnpm dev:local
+  ```
+* **Local Backend on Physical Mobile Device**:
+  ```bash
+  pnpm dev:device
+  ```
 
 Alternatively, you can start the components individually:
-* **Backend Emulation**: To start the Firebase Emulator Suite for local database emulation:
-  ```bash
-  pnpm emulators
-  ```
 * **Backend Development Server (Hot-Reload)**:
   ```bash
-  pnpm --filter functions run dev
+  pnpm server:dev
   ```
-* **Mobile Client**:
+* **Mobile Client (Cloud Backend)**:
   ```bash
-  pnpm --filter mobile run mobile:dev
+  pnpm mobile:dev
+  ```
+* **Mobile Client (Local Backend)**:
+  ```bash
+  pnpm mobile:dev:local
   ```
 
 ---
