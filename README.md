@@ -95,8 +95,53 @@ Alternatively, you can start the components individually:
   ```
 
 ---
+## 4. Tech Stack
 
-## 4. Group Members
+| Platform | Why We Chose It | Official Links |
+|---|---|---|
+| **Firebase Ecosystem** (Auth / Phone / FCM) | Provides out-of-the-box phone number one-tap authentication, zero-cost offline push notifications (FCM), and millisecond-level real-time data channels — significantly shortening development time for core mobile client flows. | [Firebase](https://firebase.google.com/) · [Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) · [Authentication](https://firebase.google.com/docs/auth) |
+| **Render** | Supports automatic build and containerized hosting triggered by Git commits, removing the need for complex server operations, and provides a minimal, stable deployment environment for Node.js backends and webhook services. | [Render](https://render.com/) |
+| **MongoDB Atlas** | Naturally suited to the variable product attributes and complex, nested structures of listing cards and chat sessions in a second-hand marketplace; supports native geolocation (GeoJSON) proximity search and flexible schema expansion. | [MongoDB Atlas](https://www.mongodb.com/atlas) |
+| **Resend** | A developer-first, next-generation email API with high deliverability. Lightweight and reliable, used to send registration, security verification codes, and key transaction receipt emails within seconds. | [Resend](https://resend.com/) |
+| **Stripe (Stripe Connect)** | A mature, compliant escrow and split-payment system. Supports holding buyer payments in escrow, automatic fund release after offline QR-code verification, and fully automated refund and dispute-prevention mechanisms. | [Stripe](https://stripe.com/) · [Stripe Connect](https://stripe.com/connect) |
+
+## 5. Document Map
+
+As the project grows, our documentation is now spread across four places, each with a specific purpose:
+
+**README (this page) — Navigation**
+The entry point. No detailed content, just links and an overview: project summary, team, tech stack, quick start, and document links.
+🔗 [README.md](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/blob/pre/README.md)
+
+**`docs/` — Formal Project Documents (versioned, tracked with code)**
+Finalized deliverables that need version control, living alongside the codebase:
+- Product Spec
+- Design Spec
+- Test Spec
+- Schemas
+
+🔗 [docs/](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/tree/pre/docs)
+
+**Wiki — Team Knowledge Base (process & history)**
+Everything produced during team collaboration that we'll want to look up later:
+- Meeting Minutes
+- Decision Log
+- Development Notes (environment setup, deployment, gotchas)
+
+🔗 [Wiki](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/wiki)
+
+**Google Docs — Collaborative Drafts (not yet finalized, frequently changing)**
+Anything still being written or needing multi-person live editing:
+- Report Drafts
+- Presentation Drafts
+- Brainstorms
+- Anything the team wants to temporarily drop in for discussion
+
+🔗 [Shared Drive Folder](https://drive.google.com/drive/folders/1HK6EkAZsz0FjwCu4Yby7qfp0N3rxHjRs?usp=sharing)
+
+> **Flow:** README points the way → `docs/` shows the finished output → Wiki shows the process → Google Docs is where we edit together.
+
+## 6. Group Members
 * **Sam Yao** (byao937)
 * **Xinru Cui** (xcui573)
 * **Yixuan Sun** (ysun801)
