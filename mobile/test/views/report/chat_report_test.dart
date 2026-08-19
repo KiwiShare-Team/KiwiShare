@@ -12,6 +12,7 @@ void main() {
           participantName: 'Jenny Yin',
           chatId: 'chat_1',
           reportedUserId: 'user_2',
+          tradeId: 'trade_3',
           itemTitle: 'Monstera plant',
         ),
       ),
