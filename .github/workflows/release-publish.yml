@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - pre
   workflow_dispatch:
 
 permissions:
@@ -29,7 +30,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: patch
-          release_branches: main
+          release_branches: main,pre
+          pre_release: ${{ github.ref_name == 'pre' }}
 
   build_android:
     name: Build Android APK
@@ -77,6 +79,9 @@ jobs:
     name: Build iOS Package
     needs: version
     runs-on: macos-latest
+    env:
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -94,6 +99,7 @@ jobs:
 
       - name: Build iOS Application (No Codesign)
         run: |
+          flutter config --no-enable-swift-package-manager
           cd mobile
           flutter build ios --release --no-codesign
 
@@ -139,7 +145,7 @@ jobs:
             ./release-assets/KiwiShare-Android-${{ needs.version.outputs.new_tag }}.apk
             ./release-assets/KiwiShare-iOS-${{ needs.version.outputs.new_tag }}.zip
           draft: false
-          prerelease: false
+          prerelease: ${{ github.ref_name == 'pre' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
