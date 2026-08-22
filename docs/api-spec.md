@@ -126,8 +126,14 @@ Validates Google OAuth ID tokens and signs in the user.
 ### `GET /api/usedItems`
 Queries and filters available used items from the marketplace.
 * **Query Parameters**:
-  - `category` (optional): `Plants`, `Camping`, `Furniture`, `Transport`, `clothing`, `electronics`, `vehicle`
+  - `category` (optional): Exact category value returned by `GET /api/usedItems/discovery-options`.
   - `query` (optional): Search string matched against title, category, description, and location.
+  - `location` (optional): Exact city value returned by the discovery-options endpoint.
+  - `minPrice` / `maxPrice` (optional): Inclusive NZD price bounds.
+  - `sustainable` (optional): Set to `true` to include only sustainability-labelled items.
+  - `sort` (optional): `price_asc` or `price_desc`; omit for recommended order.
+  - `latitude` / `longitude` (optional, paired): Approximate current location for nearby discovery.
+  - `radiusKm` (optional): Nearby radius in kilometres; defaults to 50 when coordinates are supplied.
   - `status` (optional): `active`, `reserved`, `sold`
   - `sellerId` / `ownerId` (optional): Filter items by specific seller ID.
 * **Success Response (200 OK)**:
@@ -143,9 +149,37 @@ Queries and filters available used items from the marketplace.
       "category": "Furniture",
       "condition": "good",
       "status": "active",
-      "ownerId": "64e1f77bcf86cd799439011"
+      "ownerId": "64e1f77bcf86cd799439011",
+      "latitude": -36.8485,
+      "longitude": 174.7633
     }
   ]
+  ```
+
+### `GET /api/usedItems/discovery-options`
+Returns the categories, city locations, approximate city centres, item counts,
+and available price bounds derived from active MongoDB listings. The mobile
+client uses this response instead of maintaining category or location arrays.
+
+* **Success Response (200 OK)**:
+  ```json
+  {
+    "categories": [
+      { "value": "Furniture", "count": 8 }
+    ],
+    "locations": [
+      {
+        "value": "Auckland",
+        "count": 12,
+        "latitude": -36.8485,
+        "longitude": 174.7633
+      }
+    ],
+    "priceRange": {
+      "minimum": 15,
+      "maximum": 890
+    }
+  }
   ```
 
 ### `GET /api/usedItems/:id`
