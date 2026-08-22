@@ -96,8 +96,6 @@ jobs:
         run: |
           cd mobile
           flutter pub get
-          cd ios
-          pod install --repo-update
 
       - name: Build iOS Application (No Codesign)
         run: |
