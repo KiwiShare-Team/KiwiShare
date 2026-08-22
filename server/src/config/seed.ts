@@ -49,11 +49,35 @@ export async function seedDatabase() {
       await adminUser.save();
     }
 
-    // 3. Seed Demo Pre-Loved Items if collection is empty
+    // 3. Ensure User moviegoer24@gmail.com exists with verified student credentials
+    const targetEmail = 'moviegoer24@gmail.com';
+    let moviegoerUser = await User.findOne({ email: targetEmail });
+    if (!moviegoerUser) {
+      console.log(`🌱 [Seeding] Creating user account (${targetEmail})...`);
+      const passwordHash = await bcrypt.hash('password123', 12);
+      moviegoerUser = await User.create({
+        email: targetEmail,
+        displayName: 'MovieGoer24',
+        role: 'user',
+        trustScore: 100,
+        isVerified: true,
+        isStudentVerified: true,
+        studentInstitution: 'University of Auckland',
+        studentIdNumber: 'UOA-734-2026',
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+        authProvider: 'email_password',
+        registrationPlatform: 'web',
+        lastUsedPlatform: 'web',
+        passwordHash
+      });
+      console.log(`✅ [Seeding] User account created: ${targetEmail}`);
+    }
+
+    // 4. Seed Demo Pre-Loved Items if collection is empty
     const itemCount = await Item.countDocuments();
     if (itemCount === 0) {
       console.log('🌱 [Seeding] Populating initial community used items in MongoDB...');
-      const demoSellerId = adminUser._id;
+      const demoSellerId = moviegoerUser._id;
 
       const sampleItems = [
         {
