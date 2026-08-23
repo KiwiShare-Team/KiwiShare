@@ -12,26 +12,50 @@ permissions:
 
 jobs:
   version:
-    name: Calculate Version & Tag
+    name: Calculate Version, Changelog & Tag
     runs-on: ubuntu-latest
     outputs:
-      new_tag: ${{ steps.tag_version.outputs.new_tag }}
-      new_version: ${{ steps.tag_version.outputs.new_version }}
-      changelog: ${{ steps.tag_version.outputs.changelog }}
+      new_tag: ${{ steps.bump_version.outputs.new_tag }}
+      new_version: ${{ steps.bump_version.outputs.new_version }}
+      changelog: ${{ steps.bump_version.outputs.changelog }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          default_bump: patch
-          release_branches: main,pre
-          pre_release: ${{ github.ref_name == 'pre' }}
+          node-version: '20'
+
+      - name: Bump Version and Generate Changelog
+        id: bump_version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ "${{ github.ref_name }}" = "pre" ]; then
+            npx standard-version --prerelease pre --message "chore(release): %s [skip ci]"
+          else
+            npx standard-version --message "chore(release): %s [skip ci]"
+          fi
+
+          NEW_TAG=$(git describe --tags --abbrev=0)
+          NEW_VERSION=$(node -p "require('./package.json').version")
+
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+          CHANGELOG=$(npx conventional-changelog -p angular -r 1)
+          {
+            echo "changelog<<EOF"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+          git push --follow-tags origin ${{ github.ref_name }}
 
   build_android:
     name: Build Android APK
