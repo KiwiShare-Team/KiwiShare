@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.1-pre.0](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/compare/v0.1.3...v1.1.1-pre.0) (2026-08-23)
+
+
+### Bug Fixes
+
+* ci version issue and web yaml ([#169](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues/169)) ([34a9c48](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/commit/34a9c48df1b26bbb7136eac81c3f35644433a129))
+* fix release version bump ([#168](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues/168)) ([66aa163](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/commit/66aa1630d277c3412314093b9ce63e3027534015))
+
 ## 1.1.0 (2026-08-11)
 
 
