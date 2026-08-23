@@ -107,7 +107,7 @@ jobs:
         run: |
           mkdir -p build_output
           cd mobile/build/ios/iphoneos
-          zip -r ../../../build_output/KiwiShare-iOS-${{ needs.version.outputs.new_tag }}.zip Runner.app
+          zip -r "$GITHUB_WORKSPACE/build_output/KiwiShare-iOS-${{ needs.version.outputs.new_tag }}.zip" Runner.app
 
       - name: Upload iOS Artifact
         uses: actions/upload-artifact@v4
