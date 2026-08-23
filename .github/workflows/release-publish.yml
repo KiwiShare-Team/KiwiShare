@@ -37,9 +37,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           if [ "${{ github.ref_name }}" = "pre" ]; then
-            npx standard-version --prerelease pre --message "chore(release): %s [skip ci]"
+            npx standard-version --prerelease pre --releaseCommitMessageFormat "chore(release): {{currentTag}} [skip ci]"
           else
-            npx standard-version --message "chore(release): %s [skip ci]"
+            npx standard-version --releaseCommitMessageFormat "chore(release): {{currentTag}} [skip ci]"
           fi
 
           NEW_TAG=$(git describe --tags --abbrev=0)
@@ -48,12 +48,13 @@ jobs:
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-          CHANGELOG=$(npx conventional-changelog -p angular -r 1)
-          {
-            echo "changelog<<EOF"
-            echo "$CHANGELOG"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+          node -e '
+            const fs = require("fs");
+            const content = fs.existsSync("CHANGELOG.md") ? fs.readFileSync("CHANGELOG.md", "utf8") : "";
+            const match = content.match(/## \[?[\d\w\.-]+\]?[\s\S]*?(?=\n## \[?[\d\w\.-]+\]?|$)/);
+            const notes = match ? match[0].trim() : "See CHANGELOG.md for details.";
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `changelog<<EOF\n${notes}\nEOF\n`);
+          '
 
           git push --follow-tags origin ${{ github.ref_name }}
 
