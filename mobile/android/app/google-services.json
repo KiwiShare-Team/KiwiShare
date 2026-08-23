@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "353504132004",
+    "project_id": "kiwishare-2791f",
+    "storage_bucket": "kiwishare-2791f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:353504132004:android:24aa2b6b3f819e41e9df31",
+        "android_client_info": {
+          "package_name": "com.kiwishare.andriod"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "353504132004-v9hv2iktcb0164pgsrp9ov41ihc7kba2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHlxHvIQVXZVhceG_SUs4mnUv3CkgrOpA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "353504132004-v9hv2iktcb0164pgsrp9ov41ihc7kba2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
