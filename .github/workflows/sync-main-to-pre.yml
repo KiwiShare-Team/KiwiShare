@@ -51,21 +51,25 @@ jobs:
               }
 
               // 3. Create the sync PR
+              const prBody = [
+                '### 🔄 Automatic Sync: `main` ➡️ `pre`',
+                '',
+                'This PR was automatically created after `main` was updated.',
+                'It merges latest release tags, metadata, and production changes back to `pre` to prevent branch divergence.',
+                '',
+                `- **Ahead by**: ${comparison.ahead_by} commit(s)`,
+                `- **Triggered by**: \`${context.sha}\``,
+                '',
+                'Please merge this PR to keep `pre` up to date!'
+              ].join('\n');
+
               const pr = await octokit.rest.pulls.create({
                 owner,
                 repo,
                 title: 'chore(sync): merge main back to pre [skip ci]',
                 head: 'main',
                 base: 'pre',
-                body: `### 🔄 Automatic Sync: \`main\` ➡️ \`pre\`
-
-This PR was automatically created after \`main\` was updated.
-It merges latest release tags, metadata, and production changes back to \`pre\` to prevent branch divergence.
-
-- **Ahead by**: ${comparison.ahead_by} commit(s)
-- **Triggered by**: \`${context.sha}\`
-
-Please merge this PR to keep \`pre\` up to date!`,
+                body: prBody,
               });
 
               console.log(`Successfully created sync PR #${pr.data.number}: ${pr.data.html_url}`);
