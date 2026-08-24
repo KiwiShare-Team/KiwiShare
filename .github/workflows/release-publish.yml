@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - pre
   workflow_dispatch:
 
 permissions:
@@ -11,25 +12,51 @@ permissions:
 
 jobs:
   version:
-    name: Calculate Version & Tag
+    name: Calculate Version, Changelog & Tag
     runs-on: ubuntu-latest
     outputs:
-      new_tag: ${{ steps.tag_version.outputs.new_tag }}
-      new_version: ${{ steps.tag_version.outputs.new_version }}
-      changelog: ${{ steps.tag_version.outputs.changelog }}
+      new_tag: ${{ steps.bump_version.outputs.new_tag }}
+      new_version: ${{ steps.bump_version.outputs.new_version }}
+      changelog: ${{ steps.bump_version.outputs.changelog }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          default_bump: patch
-          release_branches: main
+          node-version: '20'
+
+      - name: Bump Version and Generate Changelog
+        id: bump_version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ "${{ github.ref_name }}" = "pre" ]; then
+            npx standard-version --prerelease pre --releaseCommitMessageFormat "chore(release): {{currentTag}} [skip ci]"
+          else
+            npx standard-version --releaseCommitMessageFormat "chore(release): {{currentTag}} [skip ci]"
+          fi
+
+          NEW_TAG=$(git describe --tags --abbrev=0)
+          NEW_VERSION=$(node -p "require('./package.json').version")
+
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+          node -e '
+            const fs = require("fs");
+            const content = fs.existsSync("CHANGELOG.md") ? fs.readFileSync("CHANGELOG.md", "utf8") : "";
+            const match = content.match(/## \[?[\d\w\.-]+\]?[\s\S]*?(?=\n## \[?[\d\w\.-]+\]?|$)/);
+            const notes = match ? match[0].trim() : "See CHANGELOG.md for details.";
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `changelog<<EOF\n${notes}\nEOF\n`);
+          '
+
+          git push --follow-tags origin ${{ github.ref_name }}
 
   build_android:
     name: Build Android APK
@@ -77,6 +104,9 @@ jobs:
     name: Build iOS Package
     needs: version
     runs-on: macos-latest
+    env:
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -94,6 +124,7 @@ jobs:
 
       - name: Build iOS Application (No Codesign)
         run: |
+          flutter config --no-enable-swift-package-manager
           cd mobile
           flutter build ios --release --no-codesign
 
@@ -101,7 +132,7 @@ jobs:
         run: |
           mkdir -p build_output
           cd mobile/build/ios/iphoneos
-          zip -r ../../../build_output/KiwiShare-iOS-${{ needs.version.outputs.new_tag }}.zip Runner.app
+          zip -r "$GITHUB_WORKSPACE/build_output/KiwiShare-iOS-${{ needs.version.outputs.new_tag }}.zip" Runner.app
 
       - name: Upload iOS Artifact
         uses: actions/upload-artifact@v4
@@ -139,7 +170,7 @@ jobs:
             ./release-assets/KiwiShare-Android-${{ needs.version.outputs.new_tag }}.apk
             ./release-assets/KiwiShare-iOS-${{ needs.version.outputs.new_tag }}.zip
           draft: false
-          prerelease: false
+          prerelease: ${{ github.ref_name == 'pre' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
