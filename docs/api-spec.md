@@ -157,9 +157,10 @@ Queries and filters available used items from the marketplace.
   ```
 
 ### `GET /api/usedItems/discovery-options`
-Returns the categories, city locations, approximate city centres, item counts,
-and available price bounds derived from active MongoDB listings. The mobile
-client uses this response instead of maintaining category or location arrays.
+Returns categories, conditions, city locations, approximate city centres, item
+counts, and available price bounds derived from MongoDB. Categories come from
+the active `Category` collection; condition values are aggregated from stored
+listings. The mobile client does not maintain hard-coded marketplace options.
 
 * **Success Response (200 OK)**:
   ```json
@@ -175,6 +176,9 @@ client uses this response instead of maintaining category or location arrays.
         "longitude": 174.7633
       }
     ],
+    "conditions": [
+      { "value": "refurbished", "count": 3 }
+    ],
     "priceRange": {
       "minimum": 15,
       "maximum": 890
@@ -189,20 +193,31 @@ Retrieves full details for a single used item by its ID.
 * **Success Response (200 OK)**:
   ```json
   {
-    "id": "64e1f77bcf86cd799439012",
-    "title": "Retro Armchair",
-    "description": "Comfortable vintage armchair in great shape.",
-    "priceNzd": "45",
-    "price": 4500,
-    "currency": "NZD",
-    "location": "Central, Auckland",
-    "imageUrl": "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c",
-    "isSustainable": true,
-    "category": "Furniture",
-    "condition": "good",
-    "status": "active",
-    "ownerId": "64e1f77bcf86cd799439011",
-    "createdAt": "2026-08-19T00:00:00.000Z"
+    "status": "success",
+    "item": {
+      "id": "64e1f77bcf86cd799439012",
+      "title": "Retro Armchair",
+      "description": "Comfortable vintage armchair in great shape.",
+      "priceNzd": "45",
+      "price": 4500,
+      "currency": "NZD",
+      "location": "Central, Auckland",
+      "imageUrl": "https://example.com/items/armchair.jpg",
+      "isSustainable": true,
+      "negotiable": true,
+      "category": "Furniture",
+      "condition": "refurbished",
+      "status": "active",
+      "ownerId": "64e1f77bcf86cd799439011",
+      "seller": {
+        "id": "64e1f77bcf86cd799439011",
+        "displayName": "Stored seller name",
+        "rating": 4.8,
+        "reviewCount": 12,
+        "trustScore": 87
+      },
+      "createdAt": "2026-08-19T00:00:00.000Z"
+    }
   }
   ```
 * **Error Response (404 Not Found)**:
@@ -249,14 +264,22 @@ Publishes a new used item listing to the marketplace (Requires Authorization Hea
   ```
 
 ### `PATCH /api/usedItems/:id` (or `PUT /api/usedItems/:id`)
-Updates an existing used item listing (Requires Auth & Ownership).
+Updates an existing used item listing (Requires Auth & Ownership). The detail
+editor sends only listing-owned editable fields; owner IDs, moderation status,
+view counts, and audit fields cannot be overwritten by the client.
 * **Headers**:
   - `Authorization: Bearer <JWT_TOKEN>`
 * **Payload**:
   ```json
   {
+    "title": "Restored Armchair",
+    "description": "Updated description",
     "priceNzd": "12",
-    "status": "reserved"
+    "category": "Furniture",
+    "condition": "refurbished",
+    "location": "Central, Auckland",
+    "negotiable": true,
+    "isSustainable": true
   }
   ```
 * **Success Response (200 OK)**:
@@ -267,13 +290,15 @@ Updates an existing used item listing (Requires Auth & Ownership).
       "id": "64e1f77bcf86cd799439099",
       "title": "Monstera Deliciosa",
       "priceNzd": "12",
-      "status": "reserved"
+      "condition": "refurbished"
     }
   }
   ```
 
 ### `DELETE /api/usedItems/:id`
-Deletes/soft-deletes a used item listing (Requires Auth & Ownership).
+Soft-deletes a used item listing (Requires Auth & Ownership). The item remains
+stored with `status: deleted` and `deletedAt`; related transaction, report,
+review, and audit records are retained.
 * **Headers**:
   - `Authorization: Bearer <JWT_TOKEN>`
 * **Success Response (200 OK)**:
@@ -283,8 +308,6 @@ Deletes/soft-deletes a used item listing (Requires Auth & Ownership).
     "message": "Used item deleted successfully."
   }
   ```
-
-> **Backwards Compatibility**: `/api/listings` endpoints remain supported as aliases to `/api/usedItems`.
 
 ---
 
