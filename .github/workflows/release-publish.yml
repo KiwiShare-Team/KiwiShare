@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   version:
@@ -35,6 +36,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch --tags --force origin
 
           if [ "${{ github.ref_name }}" = "pre" ]; then
             npx standard-version --prerelease pre --releaseCommitMessageFormat "chore(release): {{currentTag}} [skip ci]"
@@ -182,3 +185,72 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+
+  sync_main_to_pre:
+    name: Create Sync PR (main -> pre)
+    needs: [version, publish_release]
+    if: ${{ github.ref_name == 'main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check and Create Sync PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            try {
+              // 1. Check if an open PR from main to pre already exists
+              const { data: existingPrs } = await octokit.rest.pulls.list({
+                owner,
+                repo,
+                state: 'open',
+                head: `${owner}:main`,
+                base: 'pre',
+              });
+
+              if (existingPrs.length > 0) {
+                console.log(`Sync PR already open: #${existingPrs[0].number} (${existingPrs[0].html_url})`);
+                return;
+              }
+
+              // 2. Compare pre with main to verify if main has new commits
+              const { data: comparison } = await octokit.rest.repos.compareCommits({
+                owner,
+                repo,
+                base: 'pre',
+                head: 'main',
+              });
+
+              if (comparison.ahead_by === 0) {
+                console.log('Branch pre is already up to date with main. No PR needed.');
+                return;
+              }
+
+              // 3. Create the sync PR
+              const prBody = [
+                '### 🔄 Automatic Sync: `main` ➡️ `pre`',
+                '',
+                'This PR was automatically created after a new release was published on `main`.',
+                'It merges latest release tags, changelog, and production metadata back to `pre` to prevent branch divergence.',
+                '',
+                `- **Ahead by**: ${comparison.ahead_by} commit(s)`,
+                `- **Release Version**: \`${{ needs.version.outputs.new_tag }}\``,
+                `- **Triggered by**: \`${context.sha}\``,
+                '',
+                'Please merge this PR to keep `pre` up to date!'
+              ].join('\n');
+
+              const pr = await octokit.rest.pulls.create({
+                owner,
+                repo,
+                title: `chore(sync): merge main (${{ needs.version.outputs.new_tag }}) back to pre [skip ci]`,
+                head: 'main',
+                base: 'pre',
+                body: prBody,
+              });
+
+              console.log(`Successfully created sync PR #${pr.data.number}: ${pr.data.html_url}`);
+            } catch (error) {
+              console.warn('Warning: Could not create sync PR:', error.message);
+            }
