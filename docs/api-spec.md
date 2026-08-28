@@ -355,7 +355,88 @@ Retrieves all items listed by the authenticated user.
 
 ---
 
-## 4. Transaction & QR Handover Endpoints
+## 4. Conversation and Text Message Endpoints (`/api/conversations`)
+
+Every endpoint in this section requires `Authorization: Bearer <JWT_TOKEN>`.
+Conversation data is returned only when the authenticated member is the buyer
+or seller. Photo messages, voice messages, push notifications, moderation, and
+conversation deletion are defined by separate backlog items.
+
+### `GET /api/conversations`
+
+Returns the authenticated member's item-linked conversations in most-recent
+activity order. Each entry includes the counterparty, item summary, buying or
+selling direction, last text, and the caller's unread count.
+
+### `POST /api/conversations`
+
+Creates or returns the buyer's existing conversation for an eligible item.
+The operation is idempotent for the same buyer and item.
+
+* **Payload**:
+  ```json
+  { "itemId": "64e1f77bcf86cd799439012" }
+  ```
+* **Success Response**: `201 Created` for a new conversation or `200 OK` for
+  the existing conversation.
+* **Validation**: Rejects invalid or unavailable items and prevents a seller
+  from starting a conversation with themselves.
+
+### `GET /api/conversations/:conversationId/messages`
+
+Returns a chronological page of non-deleted messages from a conversation.
+
+* **Query Parameters**:
+  - `limit` (optional): Page size from 1 to 100; defaults to 50.
+  - `before` (optional): ISO-8601 timestamp cursor for older messages.
+* **Success Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "messages": [
+      {
+        "id": "64e1f77bcf86cd799439101",
+        "conversationId": "64e1f77bcf86cd799439100",
+        "senderId": "64e1f77bcf86cd799439011",
+        "receiverId": "64e1f77bcf86cd799439013",
+        "type": "text",
+        "text": "Is this still available?",
+        "status": "sent",
+        "isMine": true,
+        "readAt": null,
+        "createdAt": "2026-08-27T01:00:00.000Z"
+      }
+    ],
+    "pagination": { "hasMore": false, "nextBefore": null }
+  }
+  ```
+
+### `POST /api/conversations/:conversationId/messages`
+
+Sends one plain-text message. The server derives the receiver from the
+conversation instead of accepting a client-supplied receiver ID.
+
+* **Payload**:
+  ```json
+  { "text": "Is this still available?" }
+  ```
+* **Validation**: Trims whitespace, permits 1-2000 characters, and accepts
+  messages only for an active conversation.
+* **Success Response**: `201 Created` with the created message.
+
+### `PATCH /api/conversations/:conversationId/read`
+
+Marks the caller's incoming sent or delivered messages as read and resets the
+caller's unread counter.
+
+* **Success Response (200 OK)**:
+  ```json
+  { "status": "success", "readCount": 2 }
+  ```
+
+---
+
+## 5. Transaction & QR Handover Endpoints
 
 ### `POST /api/transactions/handover/claim`
 Executes atomic ownership status transitions during peer-to-peer item handovers.
