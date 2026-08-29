@@ -355,12 +355,12 @@ Retrieves all items listed by the authenticated user.
 
 ---
 
-## 4. Conversation and Text Message Endpoints (`/api/conversations`)
+## 4. Conversation and Message Endpoints (`/api/conversations`)
 
 Every endpoint in this section requires `Authorization: Bearer <JWT_TOKEN>`.
 Conversation data is returned only when the authenticated member is the buyer
-or seller. Photo messages, voice messages, push notifications, moderation, and
-conversation deletion are defined by separate backlog items.
+or seller. Text and photo messages use the same participant-isolated history.
+Voice messages and push notifications are defined by separate backlog items.
 
 ### `GET /api/conversations`
 
@@ -401,6 +401,7 @@ Returns a chronological page of non-deleted messages from a conversation.
         "receiverId": "64e1f77bcf86cd799439013",
         "type": "text",
         "text": "Is this still available?",
+        "imageUrl": null,
         "status": "sent",
         "isMine": true,
         "readAt": null,
@@ -413,15 +414,24 @@ Returns a chronological page of non-deleted messages from a conversation.
 
 ### `POST /api/conversations/:conversationId/messages`
 
-Sends one plain-text message. The server derives the receiver from the
+Sends one text or photo message. The server derives the receiver from the
 conversation instead of accepting a client-supplied receiver ID.
 
-* **Payload**:
+* **Text payload**:
   ```json
   { "text": "Is this still available?" }
   ```
-* **Validation**: Trims whitespace, permits 1-2000 characters, and accepts
-  messages only for an active conversation.
+* **Photo payload**:
+  ```json
+  {
+    "type": "image",
+    "imageUrl": "https://assets.kiwishare.online/images/chat/photo.jpg"
+  }
+  ```
+* **Validation**: Text is trimmed and limited to 1-2000 characters. Photo
+  messages accept only HTTPS URLs from the configured KiwiShare R2 public
+  origin. The image binary is uploaded directly to R2 and is never stored in
+  MongoDB. Both message types require an active conversation.
 * **Success Response**: `201 Created` with the created message.
 
 ### `PATCH /api/conversations/:conversationId/read`
