@@ -420,9 +420,20 @@ conversation instead of accepting a client-supplied receiver ID.
   ```json
   { "text": "Is this still available?" }
   ```
-* **Validation**: Trims whitespace, permits 1-2000 characters, and accepts
-  messages only for an active conversation.
+* **Validation**: Applies Unicode NFKC normalisation, removes control and
+  invisible direction-changing characters, normalises whitespace, permits
+  1-2000 characters, checks the server-managed sensitive-term list, and accepts
+  messages only for an active conversation. Rejected content is not stored and
+  does not update the conversation preview.
 * **Success Response**: `201 Created` with the created message.
+* **Moderation Response (422 Unprocessable Entity)**:
+  ```json
+  {
+    "status": "error",
+    "code": "MESSAGE_CONTENT_NOT_ALLOWED",
+    "message": "Your message contains language that is not allowed. Please edit it and try again."
+  }
+  ```
 
 ### `PATCH /api/conversations/:conversationId/read`
 
