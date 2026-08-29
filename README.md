@@ -1,151 +1,786 @@
-# KiwiShare Monorepo - Team Five Guys (COMPSCI 734)
+# KiwiShare
 
-Welcome to the **KiwiShare** Monorepo, a secure and sustainable second-hand marketplace developed for COMPSCI 734.
+**Team Five Guys · COMPSCI 734 · University of Auckland**
+
+KiwiShare is a cross-platform second-hand marketplace built for COMPSCI 734.
+
+The project is organised as a monorepo containing:
+
+- **Flutter client** — mobile and browser-based Flutter application
+- **React web client** — separate Vite/React web application
+- **Koa backend** — Node.js + TypeScript REST API
+- **MongoDB Atlas** — application data storage
+- **Firebase** — authentication and supporting mobile services
+- **Render** — deployed backend environment
 
 ---
 
-## 1. Project Navigation Dashboard
-
-* **System Architecture**: Detailed native integrations and data models are documented in [architecture.md](file:///Users/samyao/Work/project-implementation-five-guys/docs/architecture.md).
-* **API Specifications**: Exposed endpoints and payload mappings are listed in [api-spec.md](file:///Users/samyao/Work/project-implementation-five-guys/docs/api-spec.md).
-* **OWASP Top 10 Blueprint**: Cybersecurity risk mitigations are outlined in [security-owasp.md](file:///Users/samyao/Work/project-implementation-five-guys/docs/security-owasp.md).
-* **Shared Data Contracts**: JSON schemas are defined in the [docs/schemas/](file:///Users/samyao/Work/project-implementation-five-guys/docs/schemas/) folder.
-
----
-
-## 2. Directory Structure
+## Repository Structure
 
 ```text
-kiwishare/
+project-implementation-five-guys/
 ├── .github/
-│   ├── workflows/             # CI/CD path-triggered workflows (mobile.yml / backend.yml)
-│   └── PULL_REQUEST_TEMPLATE.md
-├── docs/                      # Systems design & documentation
+│   └── workflows/              # CI/CD workflows
+│
+├── docs/                       # Architecture, API and project documentation
 │   ├── architecture.md
 │   ├── api-spec.md
-│   └── security-owasp.md
-├── docs/schemas/              # Data contract JSON schemas
-│   ├── user.schema.json
-│   └── item.schema.json
-├── server/                    # Backend RESTful Server (Node.js + Koa + TypeScript + MongoDB)
-│   ├── src/                   # Source controllers & middlewares
-│   ├── test/                  # Jest integration test suite
-│   ├── package.json
-│   └── tsconfig.json
-├── mobile/                    # Mobile Client (Flutter Cross-Platform App)
-│   ├── lib/                   # View components & providers
-│   ├── test/                  # Widget & Unit test suite
+│   ├── security-owasp.md
+│   └── schemas/
+│
+├── mobile/                     # Flutter application
+│   ├── lib/
+│   ├── test/
 │   └── pubspec.yaml
-├── package.json               # Root monorepo workspace configurations
-├── pnpm-workspace.yaml        # Workspace declarations
-└── README.md                  # Project entrypoint dashboard
+│
+├── server/                     # Koa + TypeScript backend
+│   ├── src/
+│   ├── test/
+│   ├── .env.example
+│   └── package.json
+│
+├── web/                        # React + Vite web application
+│   ├── src/
+│   └── package.json
+│
+├── scripts/
+│   └── mobile-dev.mjs          # Cross-platform Flutter launcher
+│
+├── package.json                # Root development commands
+├── pnpm-workspace.yaml
+└── README.md
 ```
 
 ---
 
-## 3. One-Click Bootstrap & Launch Guide
+# Quick Start
 
-Ensure Node.js and `pnpm` are installed (Node.js v20+ recommended).
+## 1. Prerequisites
 
-### Step 1: Install Dependencies (All Subprojects)
-Run the bootstrap command from the root directory to automatically resolve packages for both mobile and backend:
+All developers need:
+
+- **Node.js 20+**
+- **pnpm**
+- **Flutter**
+- **Git**
+
+Check your environment:
+
+```bash
+node --version
+pnpm --version
+flutter --version
+git --version
+```
+
+### Platform-specific requirements
+
+| Target | Requirements |
+|---|---|
+| Flutter Chrome | Flutter + Chrome |
+| Android emulator/device | Android SDK / Android Studio |
+| iOS Simulator | macOS + Xcode |
+| Physical iPhone | macOS + Xcode + configured iPhone |
+| React Web | Node.js + pnpm |
+| Backend | Node.js + MongoDB credentials |
+
+You do **not** need every platform installed to work on the project.
+
+For example, a developer working through Flutter Chrome only needs Flutter and Chrome.
+
+---
+
+# Initial Setup
+
+Clone the repository:
+
+```bash
+git clone https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys.git
+cd project-implementation-five-guys
+```
+
+Install Node and Flutter dependencies:
+
 ```bash
 pnpm bootstrap
 ```
 
-### Step 2: Running Tests (All Subprojects)
-Trigger the entire automated test suite (Jest integration tests and Flutter widget/unit tests):
+This installs the monorepo dependencies and runs:
+
+```bash
+flutter pub get
+```
+
+for the Flutter client.
+
+---
+
+# Backend Environment
+
+Create the backend environment file:
+
+```bash
+cp server/.env.example server/.env
+```
+
+Then configure `server/.env`.
+
+Example:
+
+```env
+NODE_ENV=development
+PORT=3000
+
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/kiwishare_prod
+MONGODB_URI_TEST=mongodb+srv://<username>:<password>@<cluster>/kiwishare_test
+
+JWT_SECRET=<your-secret>
+
+RESEND_API_KEY=<optional>
+RESEND_FROM=<optional>
+```
+
+> Never commit `server/.env` or credentials to Git.
+
+During development, the backend uses the configured development/test MongoDB database.
+
+Run the backend alone:
+
+```bash
+pnpm server:dev
+```
+
+The local API is available at:
+
+```text
+http://localhost:3000
+```
+
+Example endpoint:
+
+```text
+http://localhost:3000/api/usedItems
+```
+
+---
+
+# Development Commands
+
+The root commands are designed around two independent concepts:
+
+1. **Which frontend target to run**
+2. **Whether it connects to the local or remote backend**
+
+For normal development, use the high-level `pnpm dev:*` commands below.
+
+## Recommended Commands
+
+| Command | Starts | Backend |
+|---|---|---|
+| `pnpm dev` | Flutter Chrome + Koa | Local |
+| `pnpm dev:android` | Flutter Android + Koa | Local |
+| `pnpm dev:ios:sim` | Flutter iOS Simulator + Koa | Local |
+| `pnpm dev:ios` | Flutter physical iPhone + Koa | Local |
+| `pnpm dev:web` | React/Vite Web + Koa | Local |
+| `pnpm dev:all` | Flutter Chrome + React Web + Koa | Local |
+| `pnpm dev:remote` | Flutter Chrome only | Render |
+
+---
+
+## Default Development
+
+For most Flutter development:
+
+```bash
+pnpm dev
+```
+
+This starts:
+
+```text
+Flutter Chrome
+      │
+      ▼
+http://localhost:3000
+      │
+      ▼
+Koa Backend
+      │
+      ▼
+MongoDB Atlas
+```
+
+This is the recommended setup for fast UI, state-management and API development.
+
+---
+
+## Android Development
+
+Start an Android emulator or connect an Android device first.
+
+Then run:
+
+```bash
+pnpm dev:android
+```
+
+This starts:
+
+```text
+Flutter Android
+      │
+      ▼
+Local Koa Backend
+      │
+      ▼
+MongoDB Atlas
+```
+
+The development launcher automatically detects available Android devices.
+
+If multiple matching devices are connected, specify one explicitly:
+
+```bash
+pnpm mobile android local <device-id>
+```
+
+Example:
+
+```bash
+pnpm mobile android local emulator-5554
+```
+
+---
+
+## iOS Simulator
+
+Requires **macOS + Xcode**.
+
+Start an iOS Simulator, then:
+
+```bash
+pnpm dev:ios:sim
+```
+
+The launcher automatically detects the running simulator.
+
+---
+
+## Physical iPhone
+
+Requires **macOS + Xcode** and an iPhone configured for Flutter development.
+
+Run:
+
+```bash
+pnpm dev:ios
+```
+
+For a physical phone, `localhost` would refer to the phone itself rather than the development computer.
+
+The development launcher therefore detects the host machine's LAN address and passes the appropriate local API URL to Flutter.
+
+If automatic detection is unsuitable for your network:
+
+```bash
+LOCAL_API_HOST=192.168.1.10 pnpm dev:ios
+```
+
+Replace the address with the LAN IP of your development computer.
+
+The computer and phone must be reachable on the same network.
+
+---
+
+# React Web Application
+
+`web/` is a separate React + Vite application.
+
+Run it with the local backend:
+
+```bash
+pnpm dev:web
+```
+
+This starts:
+
+```text
+React / Vite
+     │
+     ▼
+Local Koa Backend
+```
+
+Run the React frontend by itself:
+
+```bash
+pnpm web:dev
+```
+
+---
+
+# Run Everything Locally
+
+To run the primary local development stack:
+
+```bash
+pnpm dev:all
+```
+
+This starts:
+
+```text
+                    ┌── Flutter Chrome
+                    │
+Local Koa Backend ──┼── React / Vite Web
+                    │
+                    └── MongoDB Atlas
+```
+
+Android and iOS targets are intentionally not included in `dev:all`.
+
+They can be launched separately when native-platform testing is required.
+
+---
+
+# Local Frontend + Remote Backend
+
+The deployed backend is:
+
+```text
+https://kiwishare.onrender.com
+```
+
+To run Flutter Chrome locally against the deployed backend:
+
+```bash
+pnpm dev:remote
+```
+
+You can also combine any supported Flutter target with the remote backend:
+
+```bash
+pnpm mobile android remote
+pnpm mobile ios-sim remote
+pnpm mobile ios-device remote
+pnpm mobile chrome remote
+```
+
+This is useful for distinguishing frontend issues from local-backend issues.
+
+---
+
+# Flutter Development Launcher
+
+Flutter targets are managed by:
+
+```text
+scripts/mobile-dev.mjs
+```
+
+General syntax:
+
+```bash
+pnpm mobile <target> <backend> [device-id]
+```
+
+Supported targets:
+
+```text
+chrome
+android
+ios-sim
+ios-device
+```
+
+Supported backends:
+
+```text
+local
+remote
+```
+
+Examples:
+
+```bash
+pnpm mobile chrome local
+pnpm mobile chrome remote
+
+pnpm mobile android local
+pnpm mobile android remote
+
+pnpm mobile ios-sim local
+pnpm mobile ios-device local
+```
+
+Normally, team members should use the simpler `pnpm dev:*` commands instead.
+
+The lower-level `pnpm mobile` command is mainly useful for unusual target/backend combinations.
+
+---
+
+# API Resolution
+
+The Flutter client supports both local and deployed backend environments.
+
+When using:
+
+```text
+API_BASE_URL=local
+```
+
+the client resolves the correct local backend address depending on its platform:
+
+| Flutter target | Local backend |
+|---|---|
+| Chrome | `http://localhost:3000` |
+| Android Emulator | `http://10.0.2.2:3000` |
+| iOS Simulator | `http://localhost:3000` |
+| Physical device | Host LAN IP |
+
+For remote development, the client connects to:
+
+```text
+https://kiwishare.onrender.com
+```
+
+---
+
+# Testing
+
+Run all automated tests:
+
 ```bash
 pnpm test:all
 ```
 
-### Step 3: Running Static Analysis (All Subprojects)
-Perform codebase checks (ESLint for backend TS, and Flutter analyzer for mobile Dart):
+Or individually:
+
+### Flutter
+
+```bash
+pnpm mobile:test
+```
+
+### Backend
+
+```bash
+pnpm server:test
+```
+
+---
+
+# Static Analysis
+
+Run all project checks:
+
 ```bash
 pnpm lint:all
 ```
 
-### Step 4: Running the App
+Individual checks:
 
-* **Connect directly to deployed Cloud Backend (`https://kiwishare.onrender.com`)**:
-  ```bash
-  pnpm dev
-  ```
-* **Full-stack Local Development (Starts local Koa + MongoDB server & mobile concurrently)**:
-  ```bash
-  pnpm dev:local
-  ```
-* **Local Backend on Physical Mobile Device**:
-  ```bash
-  pnpm dev:device
-  ```
-
-Alternatively, you can start the components individually:
-* **Backend Development Server (Hot-Reload)**:
-  ```bash
-  pnpm server:dev
-  ```
-* **Mobile Client (Cloud Backend)**:
-  ```bash
-  pnpm mobile:dev
-  ```
-* **Mobile Client (Local Backend)**:
-  ```bash
-  pnpm mobile:dev:local
-  ```
+```bash
+pnpm mobile:analyze
+pnpm server:lint
+pnpm web:lint
+```
 
 ---
-## 4. Tech Stack
 
-| Platform | Why We Chose It | Official Links |
-|---|---|---|
-| **Firebase Ecosystem** (Auth / Phone / FCM) | Provides out-of-the-box phone number one-tap authentication, zero-cost offline push notifications (FCM), and millisecond-level real-time data channels — significantly shortening development time for core mobile client flows. | [Firebase](https://firebase.google.com/) · [Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) · [Authentication](https://firebase.google.com/docs/auth) |
-| **Render** | Supports automatic build and containerized hosting triggered by Git commits, removing the need for complex server operations, and provides a minimal, stable deployment environment for Node.js backends and webhook services. | [Render](https://render.com/) |
-| **MongoDB Atlas** | Naturally suited to the variable product attributes and complex, nested structures of listing cards and chat sessions in a second-hand marketplace; supports native geolocation (GeoJSON) proximity search and flexible schema expansion. | [MongoDB Atlas](https://www.mongodb.com/atlas) |
-| **Resend** | A developer-first, next-generation email API with high deliverability. Lightweight and reliable, used to send registration, security verification codes, and key transaction receipt emails within seconds. | [Resend](https://resend.com/) |
-| **Stripe (Stripe Connect)** | A mature, compliant escrow and split-payment system. Supports holding buyer payments in escrow, automatic fund release after offline QR-code verification, and fully automated refund and dispute-prevention mechanisms. | [Stripe](https://stripe.com/) · [Stripe Connect](https://stripe.com/connect) |
+# Formatting
 
-## 5. Document Map
+Format Flutter/Dart source:
 
-As the project grows, our documentation is now spread across four places, each with a specific purpose:
+```bash
+pnpm format:all
+```
 
-**README (this page) — Navigation**
-The entry point. No detailed content, just links and an overview: project summary, team, tech stack, quick start, and document links.
-🔗 [README.md](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/blob/pre/README.md)
+---
 
-**`docs/` — Formal Project Documents (versioned, tracked with code)**
-Finalized deliverables that need version control, living alongside the codebase:
-- Product Spec
-- Design Spec
-- Test Spec
-- Schemas
+# Production Builds
 
-🔗 [docs/](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/tree/pre/docs)
+## Android APK
 
-**Wiki — Team Knowledge Base (process & history)**
-Everything produced during team collaboration that we'll want to look up later:
-- Meeting Minutes
-- Decision Log
-- Development Notes (environment setup, deployment, gotchas)
+```bash
+pnpm mobile:build:android
+```
 
-🔗 [Wiki](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/wiki)
+## iOS
 
-**Google Docs — Collaborative Drafts (not yet finalized, frequently changing)**
-Anything still being written or needing multi-person live editing:
-- Report Drafts
-- Presentation Drafts
-- Brainstorms
-- Anything the team wants to temporarily drop in for discussion
+Requires macOS + Xcode:
 
-🔗 [Shared Drive Folder](https://drive.google.com/drive/folders/1HK6EkAZsz0FjwCu4Yby7qfp0N3rxHjRs?usp=sharing)
+```bash
+pnpm mobile:build:ios
+```
 
-> **Flow:** README points the way → `docs/` shows the finished output → Wiki shows the process → Google Docs is where we edit together.
+## React Web
 
-## 6. Group Members
-* **Sam Yao** (byao937)
-* **Xinru Cui** (xcui573)
-* **Yixuan Sun** (ysun801)
-* **Rui Wang** (rwan911)
-* **Jenny Yin** (jyin852)
+```bash
+pnpm web:build
+```
 
-![Team image](./team-image.jpg)
+## Backend
+
+```bash
+pnpm server:build
+```
+
+## Full Build
+
+```bash
+pnpm build:all
+```
+
+> Platform-specific builds still require the appropriate platform toolchain.
+
+---
+
+# Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Mobile / Cross-platform UI | Flutter / Dart |
+| Web Application | React / TypeScript / Vite |
+| Backend | Node.js / Koa / TypeScript |
+| Database | MongoDB Atlas |
+| Authentication / Mobile Services | Firebase |
+| Email | Resend |
+| Object Storage | Cloudflare R2 |
+| Deployment | Render |
+| Package Management | pnpm |
+| Source Control / CI | GitHub / GitHub Actions |
+
+---
+
+# Documentation
+
+Project documentation is kept in `docs/`.
+
+### Architecture
+
+[System Architecture](./docs/architecture.md)
+
+### API
+
+[API Specification](./docs/api-spec.md)
+
+### Security
+
+[OWASP Security Notes](./docs/security-owasp.md)
+
+### Data Contracts
+
+[JSON Schemas](./docs/schemas/)
+
+---
+
+# Documentation Workflow
+
+We use different locations for different kinds of information.
+
+### README
+
+The starting point for developers.
+
+Contains:
+
+- project overview
+- environment setup
+- development commands
+- repository navigation
+
+### `docs/`
+
+Version-controlled project documentation.
+
+Contains finalized technical documentation such as:
+
+- architecture
+- API specification
+- security design
+- schemas
+- project specifications
+
+### GitHub Wiki
+
+Team process and knowledge base.
+
+Use it for:
+
+- meeting minutes
+- decision logs
+- development notes
+- environment gotchas
+- implementation history
+
+[KiwiShare Wiki](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/wiki)
+
+### Google Drive
+
+Used for actively edited collaborative documents such as:
+
+- reports
+- presentation drafts
+- brainstorming
+- working documents
+
+[Shared Google Drive](https://drive.google.com/drive/folders/1HK6EkAZsz0FjwCu4Yby7qfp0N3rxHjRs?usp=sharing)
+
+The intended workflow is:
+
+```text
+Google Docs
+    ↓
+collaborative drafting
+
+Wiki
+    ↓
+team knowledge and decisions
+
+docs/
+    ↓
+final version-controlled technical documents
+
+README
+    ↓
+navigation and developer onboarding
+```
+
+---
+
+# Git Workflow
+
+Before starting work:
+
+```bash
+git pull
+pnpm bootstrap
+```
+
+Create or switch to the appropriate feature branch.
+
+Before opening a pull request:
+
+```bash
+pnpm lint:all
+pnpm test:all
+```
+
+Do not commit:
+
+- `.env`
+- credentials
+- API secrets
+- local SDK paths
+- IDE-specific machine configuration
+
+Development tooling should remain portable across team members wherever possible.
+
+---
+
+# Troubleshooting
+
+## Flutter says more than one device is connected
+
+Check:
+
+```bash
+flutter devices
+```
+
+Then either use one of the target-specific development commands or specify a device:
+
+```bash
+pnpm mobile android local <device-id>
+```
+
+---
+
+## No Android device found
+
+Make sure an Android emulator is running or a physical Android device is connected.
+
+Then:
+
+```bash
+flutter devices
+```
+
+---
+
+## iOS Simulator is unavailable
+
+iOS Simulator development requires:
+
+```text
+macOS
++
+Xcode
++
+Flutter iOS toolchain
+```
+
+It is not available on Windows or Linux.
+
+---
+
+## Backend cannot connect to MongoDB
+
+Confirm:
+
+```text
+server/.env
+```
+
+exists and contains valid:
+
+```env
+MONGODB_URI=
+MONGODB_URI_TEST=
+```
+
+If the application attempts to connect to:
+
+```text
+127.0.0.1:27017
+```
+
+the MongoDB environment configuration has probably not been loaded.
+
+---
+
+## Flutter cannot find Chrome
+
+Check:
+
+```bash
+flutter devices
+flutter doctor -v
+```
+
+Chrome should appear as:
+
+```text
+Chrome (web) • chrome
+```
+
+---
+
+# Team
+
+**Five Guys — COMPSCI 734**
+
+- Sam Yao — `byao937`
+- Xinru Cui — `xcui573`
+- Yixuan Sun — `ysun801`
+- Rui Wang — `rwan911`
+- Jenny Yin — `jyin852`
+
+![Team Five Guys](./team-image.jpg)
+
+---
+
+## KiwiShare
+
+Building a safer and more convenient second-hand marketplace across mobile and web.

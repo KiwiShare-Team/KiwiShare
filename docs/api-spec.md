@@ -355,12 +355,12 @@ Retrieves all items listed by the authenticated user.
 
 ---
 
-## 4. Conversation and Text Message Endpoints (`/api/conversations`)
+## 4. Conversation and Message Endpoints (`/api/conversations`)
 
 Every endpoint in this section requires `Authorization: Bearer <JWT_TOKEN>`.
 Conversation data is returned only when the authenticated member is the buyer
-or seller. Photo messages, voice messages, push notifications, moderation, and
-conversation deletion are defined by separate backlog items.
+or seller. Text and photo messages use the same participant-isolated history.
+Voice messages and push notifications are defined by separate backlog items.
 
 ### `GET /api/conversations`
 
@@ -401,6 +401,7 @@ Returns a chronological page of non-deleted messages from a conversation.
         "receiverId": "64e1f77bcf86cd799439013",
         "type": "text",
         "text": "Is this still available?",
+        "imageUrl": null,
         "status": "sent",
         "isMine": true,
         "readAt": null,
@@ -413,18 +414,28 @@ Returns a chronological page of non-deleted messages from a conversation.
 
 ### `POST /api/conversations/:conversationId/messages`
 
-Sends one plain-text message. The server derives the receiver from the
+Sends one text or photo message. The server derives the receiver from the
 conversation instead of accepting a client-supplied receiver ID.
 
-* **Payload**:
+* **Text payload**:
   ```json
   { "text": "Is this still available?" }
   ```
-* **Validation**: Applies Unicode NFKC normalisation, removes control and
-  invisible direction-changing characters, normalises whitespace, permits
-  1-2000 characters, checks the server-managed sensitive-term list, and accepts
-  messages only for an active conversation. Rejected content is not stored and
-  does not update the conversation preview.
+* **Photo payload**:
+  ```json
+  {
+    "type": "image",
+    "imageUrl": "https://assets.kiwishare.online/images/chat/photo.jpg"
+  }
+  ```
+* **Validation**: Text messages apply Unicode NFKC normalisation, remove
+  control and invisible direction-changing characters, normalise whitespace,
+  permit 1-2000 characters, and check the server-managed sensitive-term list.
+  Photo messages accept only URLs produced by the configured KiwiShare R2
+  public origin or local image proxy. Image binary data is uploaded directly
+  to R2 and is never stored in MongoDB. Both message types require an active
+  conversation. Rejected content is not stored and does not update the
+  conversation preview.
 * **Success Response**: `201 Created` with the created message.
 * **Moderation Response (422 Unprocessable Entity)**:
   ```json
