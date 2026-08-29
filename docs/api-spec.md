@@ -428,11 +428,23 @@ conversation instead of accepting a client-supplied receiver ID.
     "imageUrl": "https://assets.kiwishare.online/images/chat/photo.jpg"
   }
   ```
-* **Validation**: Text is trimmed and limited to 1-2000 characters. Photo
-  messages accept only HTTPS URLs from the configured KiwiShare R2 public
-  origin. The image binary is uploaded directly to R2 and is never stored in
-  MongoDB. Both message types require an active conversation.
+* **Validation**: Text messages apply Unicode NFKC normalisation, remove
+  control and invisible direction-changing characters, normalise whitespace,
+  permit 1-2000 characters, and check the server-managed sensitive-term list.
+  Photo messages accept only URLs produced by the configured KiwiShare R2
+  public origin or local image proxy. Image binary data is uploaded directly
+  to R2 and is never stored in MongoDB. Both message types require an active
+  conversation. Rejected content is not stored and does not update the
+  conversation preview.
 * **Success Response**: `201 Created` with the created message.
+* **Moderation Response (422 Unprocessable Entity)**:
+  ```json
+  {
+    "status": "error",
+    "code": "MESSAGE_CONTENT_NOT_ALLOWED",
+    "message": "Your message contains language that is not allowed. Please edit it and try again."
+  }
+  ```
 
 ### `PATCH /api/conversations/:conversationId/read`
 
