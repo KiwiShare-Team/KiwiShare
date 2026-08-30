@@ -360,7 +360,8 @@ Retrieves all items listed by the authenticated user.
 Every endpoint in this section requires `Authorization: Bearer <JWT_TOKEN>`.
 Conversation data is returned only when the authenticated member is the buyer
 or seller. Text and photo messages use the same participant-isolated history.
-Voice messages and push notifications are defined by separate backlog items.
+Voice messages are defined by a separate backlog item. Authenticated mobile
+devices may register for best-effort new-message push notifications.
 
 ### `GET /api/conversations`
 
@@ -446,6 +447,11 @@ conversation instead of accepting a client-supplied receiver ID.
   }
   ```
 
+After a message is stored and its unread state is updated, the server attempts
+to notify the receiver's registered devices through FCM. The push payload uses
+conversation, item, and sender display metadata but excludes message text and
+image URLs. Notification failure never rolls back or rejects the stored message.
+
 ### `PATCH /api/conversations/:conversationId/read`
 
 Marks the caller's incoming sent or delivered messages as read and resets the
@@ -458,7 +464,40 @@ caller's unread counter.
 
 ---
 
-## 5. Transaction & QR Handover Endpoints
+## 5. Push Notification Device Endpoints (`/api/notifications`)
+
+Both endpoints require `Authorization: Bearer <JWT_TOKEN>`. Device tokens are
+private delivery identifiers and are never returned by the API.
+
+### `POST /api/notifications/devices`
+
+Creates or refreshes the current installation's FCM registration. Registering
+the same token under another authenticated account transfers that installation
+to the current account, which prevents notifications leaking across account
+changes on a shared device.
+
+* **Payload**:
+  ```json
+  { "token": "<FCM_REGISTRATION_TOKEN>", "platform": "android" }
+  ```
+* **Platforms**: `android` or `ios`.
+* **Success Response**: `200 OK` with
+  `{ "status": "success", "device": { "platform": "android" } }` (or `ios`).
+
+### `DELETE /api/notifications/devices`
+
+Removes the supplied token only when it belongs to the authenticated account.
+The Flutter client calls this before clearing a signed-in session.
+
+* **Payload**:
+  ```json
+  { "token": "<FCM_REGISTRATION_TOKEN>" }
+  ```
+* **Success Response**: `200 OK`; the operation is idempotent.
+
+---
+
+## 6. Transaction & QR Handover Endpoints
 
 ### `POST /api/transactions/handover/claim`
 Executes atomic ownership status transitions during peer-to-peer item handovers.

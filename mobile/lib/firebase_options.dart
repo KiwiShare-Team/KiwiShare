@@ -6,8 +6,8 @@ import 'package:flutter/foundation.dart'
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
-/// This is a placeholder file to enable compilation. Run `flutterfire configure`
-/// to link your actual Firebase project and overwrite this file.
+/// Android and iOS values mirror the checked-in Firebase platform files.
+/// Web remains intentionally unconfigured until a web Firebase app is approved.
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -42,11 +42,11 @@ class DefaultFirebaseOptions {
     storageBucket: 'kiwishare-2791f.firebasestorage.app',
   );
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'placeholder-api-key',
-    appId: 'placeholder-app-id',
-    messagingSenderId: 'placeholder-sender-id',
-    projectId: 'placeholder-project-id',
-    storageBucket: 'placeholder-project-id.appspot.com',
-    iosBundleId: 'co.nz.kiwishare.mobile',
+    apiKey: 'AIzaSyBD0RTG1me2_Q3bY7zNyMbnqtTbN7kfG_g',
+    appId: '1:353504132004:ios:37bb220bb02ddb53e9df31',
+    messagingSenderId: '353504132004',
+    projectId: 'kiwishare-2791f',
+    storageBucket: 'kiwishare-2791f.firebasestorage.app',
+    iosBundleId: 'com.kiwishare.ios',
   );
 }
