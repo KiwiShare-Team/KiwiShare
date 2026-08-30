@@ -9,16 +9,6 @@ import 'package:flutter/foundation.dart'
 /// Android and iOS values mirror the checked-in Firebase platform files.
 /// Web remains intentionally unconfigured until a web Firebase app is approved.
 class DefaultFirebaseOptions {
-  static bool get isConfigured {
-    try {
-      final opts = currentPlatform;
-      return !opts.apiKey.contains('placeholder') &&
-          !opts.appId.contains('placeholder');
-    } catch (_) {
-      return false;
-    }
-  }
-
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;
@@ -51,7 +41,6 @@ class DefaultFirebaseOptions {
     projectId: 'kiwishare-2791f',
     storageBucket: 'kiwishare-2791f.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBD0RTG1me2_Q3bY7zNyMbnqtTbN7kfG_g',
     appId: '1:353504132004:ios:37bb220bb02ddb53e9df31',
