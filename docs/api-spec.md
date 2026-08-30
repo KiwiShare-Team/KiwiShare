@@ -481,7 +481,8 @@ changes on a shared device.
   { "token": "<FCM_REGISTRATION_TOKEN>", "platform": "android" }
   ```
 * **Platforms**: `android` or `ios`.
-* **Success Response**: `200 OK` with the registration ID and platform.
+* **Success Response**: `200 OK` with
+  `{ "status": "success", "device": { "platform": "android" } }` (or `ios`).
 
 ### `DELETE /api/notifications/devices`
 
