@@ -288,6 +288,40 @@ Deletes/soft-deletes a used item listing (Requires Auth & Ownership).
 
 ---
 
+### `POST /api/listing-suggestions`
+Returns an optional AI-generated draft for the authenticated seller to review.
+The endpoint never creates or updates a listing, does not accept photos, and
+does not generate or replace the listing location.
+
+* **Authentication**: Bearer token required.
+* **Rate limit**: 5 requests per authenticated account per minute.
+* **Payload**: At least one of `title`, `description`, `category`, or
+  `condition` is required. `location` is optional context.
+  ```json
+  {
+    "title": "Wooden desk",
+    "description": "Some scratches on the top",
+    "category": "Furniture",
+    "condition": "Good",
+    "location": "Mount Eden, Auckland"
+  }
+  ```
+* **Success Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "suggestion": {
+      "title": "Solid wood study desk",
+      "description": "A sturdy pre-owned desk with light signs of use.",
+      "category": "Furniture",
+      "condition": "Good",
+      "priceNzd": "120"
+    }
+  }
+  ```
+* **Errors**: `400` invalid context, `401` unauthenticated, `429` rate limited,
+  `502` invalid provider output, or `503` provider unavailable.
+
 ## 3. User Profile Resource (`/api/users`)
 
 ### `GET /api/users/me`

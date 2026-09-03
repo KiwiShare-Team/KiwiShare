@@ -138,6 +138,10 @@ JWT_SECRET=<your-secret>
 
 RESEND_API_KEY=<optional>
 RESEND_FROM=<optional>
+
+# Optional AI listing suggestions (server-side only)
+GEMINI_API_KEY=<optional>
+GEMINI_MODEL=gemini-2.5-flash-lite
 ```
 
 > Never commit `server/.env` or credentials to Git.
