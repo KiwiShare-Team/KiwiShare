@@ -260,6 +260,6 @@ SPEC CHECKSUMS:
   record_ios: 390a30c7caaf8b5d0fb1cb1d2fd5064b48b4520c
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
 
-PODFILE CHECKSUM: 99034bb3285b32ac61bfcb82774dbeb45a0900b5
+PODFILE CHECKSUM: cfc6eb51bb50fc68c9db418c62ad9f9f01e54fd9
 
 COCOAPODS: 1.17.0
