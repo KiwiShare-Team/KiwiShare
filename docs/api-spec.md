@@ -288,6 +288,40 @@ Deletes/soft-deletes a used item listing (Requires Auth & Ownership).
 
 ---
 
+### `POST /api/listing-suggestions`
+Returns an optional AI-generated draft for the authenticated seller to review.
+The endpoint never creates or updates a listing, does not accept photos, and
+does not generate or replace the listing location.
+
+* **Authentication**: Bearer token required.
+* **Rate limit**: 5 requests per authenticated account per minute.
+* **Payload**: At least one of `title`, `description`, `category`, or
+  `condition` is required. `location` is optional context.
+  ```json
+  {
+    "title": "Wooden desk",
+    "description": "Some scratches on the top",
+    "category": "Furniture",
+    "condition": "Good",
+    "location": "Mount Eden, Auckland"
+  }
+  ```
+* **Success Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "suggestion": {
+      "title": "Solid wood study desk",
+      "description": "A sturdy pre-owned desk with light signs of use.",
+      "category": "Furniture",
+      "condition": "Good",
+      "priceNzd": "120"
+    }
+  }
+  ```
+* **Errors**: `400` invalid context, `401` unauthenticated, `429` rate limited,
+  `502` invalid provider output, or `503` provider unavailable.
+
 ## 3. User Profile Resource (`/api/users`)
 
 ### `GET /api/users/me`
@@ -355,7 +389,149 @@ Retrieves all items listed by the authenticated user.
 
 ---
 
-## 4. Transaction & QR Handover Endpoints
+## 4. Conversation and Message Endpoints (`/api/conversations`)
+
+Every endpoint in this section requires `Authorization: Bearer <JWT_TOKEN>`.
+Conversation data is returned only when the authenticated member is the buyer
+or seller. Text and photo messages use the same participant-isolated history.
+Voice messages are defined by a separate backlog item. Authenticated mobile
+devices may register for best-effort new-message push notifications.
+
+### `GET /api/conversations`
+
+Returns the authenticated member's item-linked conversations in most-recent
+activity order. Each entry includes the counterparty, item summary, buying or
+selling direction, last text, and the caller's unread count.
+
+### `POST /api/conversations`
+
+Creates or returns the buyer's existing conversation for an eligible item.
+The operation is idempotent for the same buyer and item.
+
+* **Payload**:
+  ```json
+  { "itemId": "64e1f77bcf86cd799439012" }
+  ```
+* **Success Response**: `201 Created` for a new conversation or `200 OK` for
+  the existing conversation.
+* **Validation**: Rejects invalid or unavailable items and prevents a seller
+  from starting a conversation with themselves.
+
+### `GET /api/conversations/:conversationId/messages`
+
+Returns a chronological page of non-deleted messages from a conversation.
+
+* **Query Parameters**:
+  - `limit` (optional): Page size from 1 to 100; defaults to 50.
+  - `before` (optional): ISO-8601 timestamp cursor for older messages.
+* **Success Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "messages": [
+      {
+        "id": "64e1f77bcf86cd799439101",
+        "conversationId": "64e1f77bcf86cd799439100",
+        "senderId": "64e1f77bcf86cd799439011",
+        "receiverId": "64e1f77bcf86cd799439013",
+        "type": "text",
+        "text": "Is this still available?",
+        "imageUrl": null,
+        "status": "sent",
+        "isMine": true,
+        "readAt": null,
+        "createdAt": "2026-08-27T01:00:00.000Z"
+      }
+    ],
+    "pagination": { "hasMore": false, "nextBefore": null }
+  }
+  ```
+
+### `POST /api/conversations/:conversationId/messages`
+
+Sends one text or photo message. The server derives the receiver from the
+conversation instead of accepting a client-supplied receiver ID.
+
+* **Text payload**:
+  ```json
+  { "text": "Is this still available?" }
+  ```
+* **Photo payload**:
+  ```json
+  {
+    "type": "image",
+    "imageUrl": "https://assets.kiwishare.online/images/chat/photo.jpg"
+  }
+  ```
+* **Validation**: Text messages apply Unicode NFKC normalisation, remove
+  control and invisible direction-changing characters, normalise whitespace,
+  permit 1-2000 characters, and check the server-managed sensitive-term list.
+  Photo messages accept only URLs produced by the configured KiwiShare R2
+  public origin or local image proxy. Image binary data is uploaded directly
+  to R2 and is never stored in MongoDB. Both message types require an active
+  conversation. Rejected content is not stored and does not update the
+  conversation preview.
+* **Success Response**: `201 Created` with the created message.
+* **Moderation Response (422 Unprocessable Entity)**:
+  ```json
+  {
+    "status": "error",
+    "code": "MESSAGE_CONTENT_NOT_ALLOWED",
+    "message": "Your message contains language that is not allowed. Please edit it and try again."
+  }
+  ```
+
+After a message is stored and its unread state is updated, the server attempts
+to notify the receiver's registered devices through FCM. The push payload uses
+conversation, item, and sender display metadata but excludes message text and
+image URLs. Notification failure never rolls back or rejects the stored message.
+
+### `PATCH /api/conversations/:conversationId/read`
+
+Marks the caller's incoming sent or delivered messages as read and resets the
+caller's unread counter.
+
+* **Success Response (200 OK)**:
+  ```json
+  { "status": "success", "readCount": 2 }
+  ```
+
+---
+
+## 5. Push Notification Device Endpoints (`/api/notifications`)
+
+Both endpoints require `Authorization: Bearer <JWT_TOKEN>`. Device tokens are
+private delivery identifiers and are never returned by the API.
+
+### `POST /api/notifications/devices`
+
+Creates or refreshes the current installation's FCM registration. Registering
+the same token under another authenticated account transfers that installation
+to the current account, which prevents notifications leaking across account
+changes on a shared device.
+
+* **Payload**:
+  ```json
+  { "token": "<FCM_REGISTRATION_TOKEN>", "platform": "android" }
+  ```
+* **Platforms**: `android` or `ios`.
+* **Success Response**: `200 OK` with
+  `{ "status": "success", "device": { "platform": "android" } }` (or `ios`).
+
+### `DELETE /api/notifications/devices`
+
+Removes the supplied token only when it belongs to the authenticated account.
+The Flutter client calls this before clearing a signed-in session.
+
+* **Payload**:
+  ```json
+  { "token": "<FCM_REGISTRATION_TOKEN>" }
+  ```
+* **Success Response**: `200 OK`; the operation is idempotent.
+
+---
+
+## 6. Transaction & QR Handover Endpoints
 
 ### `POST /api/transactions/handover/claim`
 Executes atomic ownership status transitions during peer-to-peer item handovers.
