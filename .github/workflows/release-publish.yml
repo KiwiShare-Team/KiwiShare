@@ -38,14 +38,27 @@ jobs:
 
           git fetch --tags --force origin
 
-          if [ "${{ github.ref_name }}" = "pre" ]; then
-            npx standard-version --prerelease pre --releaseCommitMessageFormat "chore(release): {{currentTag}} [skip ci]"
-          else
-            npx standard-version --releaseCommitMessageFormat "chore(release): {{currentTag}} [skip ci]"
-          fi
+          # Check if the version in package.json already has a remote tag
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          PKG_TAG="v$PKG_VERSION"
+          REMOTE_TAG_EXISTS=$(git ls-remote --tags origin "refs/tags/$PKG_TAG" | wc -l)
 
-          NEW_TAG=$(git describe --tags --abbrev=0)
-          NEW_VERSION=$(node -p "require('./package.json').version")
+          if [ "$REMOTE_TAG_EXISTS" -eq "0" ]; then
+            echo "Version $PKG_VERSION in package.json is not tagged yet. Using $PKG_TAG."
+            NEW_VERSION="$PKG_VERSION"
+            NEW_TAG="$PKG_TAG"
+            git tag -f "$NEW_TAG"
+          else
+            echo "Version $PKG_VERSION is already tagged. Calculating next version..."
+            if [ "${{ github.ref_name }}" = "pre" ]; then
+              npx standard-version --prerelease pre --skip.commit --skip.tag
+            else
+              npx standard-version --skip.commit --skip.tag
+            fi
+            NEW_VERSION=$(node -p "require('./package.json').version")
+            NEW_TAG="v$NEW_VERSION"
+            git tag -f "$NEW_TAG"
+          fi
 
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
@@ -58,7 +71,8 @@ jobs:
             fs.appendFileSync(process.env.GITHUB_OUTPUT, `changelog<<EOF\n${notes}\nEOF\n`);
           '
 
-          git push --follow-tags origin ${{ github.ref_name }}
+          # Push ONLY the tag to origin. Never push directly to protected branch main.
+          git push origin "refs/tags/$NEW_TAG" --force
 
   build_android:
     name: Build Android APK
@@ -251,5 +265,12 @@ jobs:
 
               console.log(`Successfully created sync PR #${pr.data.number}: ${pr.data.html_url}`);
             } catch (error) {
-              console.warn('Warning: Could not create sync PR:', error.message);
+              console.warn('Warning: Could not create sync PR automatically:', error.message);
+              const compareUrl = `https://github.com/${owner}/${repo}/compare/pre...main?expand=1`;
+              await core.summary
+                .addHeading('🔄 Sync Notice: main ➡️ pre')
+                .addRaw(`GitHub Actions does not have permission to automatically create Pull Requests in this repository.\n\n`)
+                .addRaw(`Please create the sync PR manually using the link below:\n\n`)
+                .addRaw(`👉 **[Click here to open PR: \`main\` ➡️ \`pre\`](${compareUrl})**\n`)
+                .write();
             }

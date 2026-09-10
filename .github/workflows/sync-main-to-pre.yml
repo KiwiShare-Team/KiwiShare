@@ -74,6 +74,12 @@ jobs:
 
               console.log(`Successfully created sync PR #${pr.data.number}: ${pr.data.html_url}`);
             } catch (error) {
-              console.error('Error creating sync PR:', error.message);
-              throw error;
+              console.warn('Warning: Could not create sync PR automatically:', error.message);
+              const compareUrl = `https://github.com/${owner}/${repo}/compare/pre...main?expand=1`;
+              await core.summary
+                .addHeading('🔄 Sync Notice: main ➡️ pre')
+                .addRaw(`GitHub Actions does not have permission to automatically create Pull Requests in this repository.\n\n`)
+                .addRaw(`Please create the sync PR manually using the link below:\n\n`)
+                .addRaw(`👉 **[Click here to open PR: \`main\` ➡️ \`pre\`](${compareUrl})**\n`)
+                .write();
             }
