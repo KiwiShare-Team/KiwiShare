@@ -16,6 +16,8 @@ Registers a new user profile with password authentication in MongoDB.
     "displayName": "Sam"
   }
   ```
+
+
 * **Success Response (201 Created)**:
   ```json
   {
@@ -552,3 +554,46 @@ Executes atomic ownership status transitions during peer-to-peer item handovers.
     "newOwnerId": "64e1f77bcf86cd799439011"
   }
   ```
+
+---
+
+## 7. Report History Endpoint (`/api/reports`)
+
+Report history is a confidential, authenticated account resource. The server
+always derives ownership from the JWT and never accepts a reporter ID as a
+query parameter.
+
+### `GET /api/reports`
+
+Returns every report submitted by the authenticated member, ordered by
+`createdAt` from newest to oldest.
+
+* **Headers**:
+  - `Authorization: Bearer <JWT_TOKEN>`
+  - `Accept: application/json`
+* **Success Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "reports": [
+      {
+        "id": "66e640ee3d3540355741abcd",
+        "targetType": "user",
+        "contextType": "chat",
+        "reason": "harassment_or_abusive_behaviour",
+        "details": "The member repeatedly sent threatening messages.",
+        "status": "pending",
+        "createdAt": "2026-09-14T01:00:00.000Z"
+      }
+    ]
+  }
+  ```
+* **Statuses**: `pending`, `reviewed`, or `dismissed`. The client presents
+  these as high-level progress only and must not imply an enforcement outcome.
+* **Privacy**: The response omits `reporterId`, target/context IDs, moderator
+  notes, and enforcement details. A member cannot request another account's
+  reports.
+* **Empty state**: An account with no reports receives `200 OK` with
+  `"reports": []`; the client must not fill this state with sample records.
+* **Authentication errors**: `401 Unauthorized` for a missing/current-account
+  failure and `403 Forbidden` for an invalid or expired JWT.
