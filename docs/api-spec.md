@@ -233,7 +233,7 @@ Publishes a new used item listing to the marketplace (Requires Authorization Hea
 * **Success Response (201 Created)**:
   ```json
   {
-    "status": "success",
+    "status": "created",
     "item": {
       "id": "64e1f77bcf86cd799439099",
       "title": "Monstera Deliciosa",
@@ -604,7 +604,7 @@ Creates one report for the authenticated member.
 * **Success Response (201 Created)**:
   ```json
   {
-    "status": "created",
+    "status": "success",
     "report": {
       "id": "64e1f77bcf86cd799439120",
       "reporterId": "64e1f77bcf86cd799439011",
