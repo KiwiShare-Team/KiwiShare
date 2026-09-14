@@ -17,7 +17,6 @@ Registers a new user profile with password authentication in MongoDB.
   }
   ```
 
-
 * **Success Response (201 Created)**:
   ```json
   {
