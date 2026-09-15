@@ -16,6 +16,7 @@ Registers a new user profile with password authentication in MongoDB.
     "displayName": "Sam"
   }
   ```
+
 * **Success Response (201 Created)**:
   ```json
   {
@@ -555,12 +556,12 @@ Executes atomic ownership status transitions during peer-to-peer item handovers.
 
 ---
 
-## 7. Report Endpoint (`/api/reports`)
+## 7. Report Endpoints (`/api/reports`)
 
-Reports are confidential moderation records. The mobile client can create a
-report but cannot list reports, read another member's reports, choose the
-reporter identity, or set moderation fields. The stored document shape is
-defined in `docs/schemas/report.schema.json`.
+Reports are confidential moderation records. Authenticated members can create
+reports and review their own report history, but cannot read another member's
+reports, choose the reporter identity, or set moderation fields. The stored
+document shape is defined in `docs/schemas/report.schema.json`.
 
 ### `POST /api/reports`
 
@@ -627,5 +628,41 @@ Creates one report for the authenticated member.
   - `404 Not Found`: target or related context does not exist.
   - `409 Conflict`: a matching report was submitted in the duplicate window.
 
-There is intentionally no public `GET /api/reports` endpoint in the MVP. A
-future moderator endpoint requires a separate authorization and privacy review.
+### `GET /api/reports`
+
+Returns every report submitted by the authenticated member, ordered by
+`createdAt` from newest to oldest. The server always derives ownership from the
+JWT and never accepts a reporter ID as a query parameter.
+
+* **Headers**:
+  - `Authorization: Bearer <JWT_TOKEN>`
+  - `Accept: application/json`
+* **Success Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "reports": [
+      {
+        "id": "66e640ee3d3540355741abcd",
+        "targetType": "user",
+        "contextType": "chat",
+        "reason": "harassment_or_abusive_behaviour",
+        "details": "The member repeatedly sent threatening messages.",
+        "status": "pending",
+        "createdAt": "2026-09-14T01:00:00.000Z"
+      }
+    ]
+  }
+  ```
+* **Statuses**: `pending`, `reviewed`, or `dismissed`. The client presents
+  these as high-level progress only and must not imply an enforcement outcome.
+* **Privacy**: The response omits `reporterId`, target/context IDs, moderator
+  notes, and enforcement details. A member cannot request another account's
+  reports.
+* **Empty state**: An account with no reports receives `200 OK` with
+  `"reports": []`; the client must not fill this state with sample records.
+* **Authentication errors**: `401 Unauthorized` for a missing/current-account
+  failure and `403 Forbidden` for an invalid or expired JWT.
+
+There is no public or moderator `GET /api/reports` endpoint in the MVP. A future
+moderator endpoint requires a separate authorization and privacy review.
