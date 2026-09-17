@@ -18,6 +18,7 @@ The project is organised as a monorepo containing:
 ## 🎯 Coursework Evaluation Quick Links
 
 - **🚀 Assessor 3-Minute Live Demo Guide**: [`docs/demo-guide.md`](docs/demo-guide.md)
+- **📊 Interactive Presentation Slide Deck (HTML)**: [`docs/presentation.html`](docs/presentation.html)
 - **🌐 Production Web Portal**: [https://kiwishare.online](https://kiwishare.online)
 - **☁️ Production Backend API**: [https://kiwishare.onrender.com](https://kiwishare.onrender.com)
 - **📱 Android APK Releases**: [GitHub Releases](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/releases)
