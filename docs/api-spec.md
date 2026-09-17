@@ -552,3 +552,116 @@ Executes atomic ownership status transitions during peer-to-peer item handovers.
     "newOwnerId": "64e1f77bcf86cd799439011"
   }
   ```
+
+---
+
+## 7. Report Endpoints (`/api/reports`)
+
+Reports are confidential moderation records. Authenticated members can create
+reports and review their own report history, but cannot read another member's
+reports, choose the reporter identity, or set moderation fields. The stored
+document shape is defined in `docs/schemas/report.schema.json`.
+
+### `POST /api/reports`
+
+Creates one report for the authenticated member.
+
+* **Headers**:
+  - `Authorization: Bearer <JWT_TOKEN>`
+  - `Content-Type: application/json`
+* **Payload**:
+  ```json
+  {
+    "targetType": "listing",
+    "targetId": "64e1f77bcf86cd799439099",
+    "contextType": "listing",
+    "contextId": "64e1f77bcf86cd799439099",
+    "reason": "misleading_information",
+    "details": "The photos and description show different items."
+  }
+  ```
+* **Target types**:
+  - `listing`: requires an existing `targetId`, `contextType: listing`, and an
+    optional `contextId` equal to the target listing. The stored listing
+    context is normalised to the target ID.
+  - `user`: requires an existing `targetId`; context must be `profile`, `chat`,
+    or `transaction`. Chat and transaction reports require a `contextId` whose
+    participants include both the reporter and reported user. A profile context
+    is normalised to the reported user ID.
+  - `general`: must use `contextType: general` and omit both IDs.
+* **Listing reason codes**: `misleading_information`,
+  `prohibited_or_unsafe_item`, `counterfeit_item`, `suspected_stolen_item`,
+  `duplicate_listing_or_spam`, `other`.
+* **User and general reason codes**: `scam_or_fraud`,
+  `harassment_or_abusive_behaviour`, `unsafe_meetup_behaviour`,
+  `did_not_show_up_repeatedly`, `fake_identity_or_impersonation`,
+  `suspicious_payment_request`, `off_platform_communication`, `other`.
+* **Details**: required after trimming; 10–1000 characters.
+* **Server-owned fields**: `id`, `reporterId`, `status`, and `createdAt`. Any
+  same-named values sent by a client are ignored.
+* **Duplicate protection**: the same reporter, target, context, and reason is
+  rejected for 10 minutes after a successful submission.
+* **Success Response (201 Created)**:
+  ```json
+  {
+    "status": "success",
+    "report": {
+      "id": "64e1f77bcf86cd799439120",
+      "reporterId": "64e1f77bcf86cd799439011",
+      "targetType": "listing",
+      "targetId": "64e1f77bcf86cd799439099",
+      "contextType": "listing",
+      "contextId": "64e1f77bcf86cd799439099",
+      "reason": "misleading_information",
+      "details": "The photos and description show different items.",
+      "status": "pending",
+      "createdAt": "2026-08-31T03:04:05.000Z"
+    }
+  }
+  ```
+* **Error responses**:
+  - `400 Bad Request`: invalid target/context/reason/details, or self-report.
+  - `401 Unauthorized`: missing/invalid session or deleted reporter account.
+  - `403 Forbidden`: the reporter is not a participant in the supplied private
+    chat or transaction context.
+  - `404 Not Found`: target or related context does not exist.
+  - `409 Conflict`: a matching report was submitted in the duplicate window.
+
+### `GET /api/reports`
+
+Returns every report submitted by the authenticated member, ordered by
+`createdAt` from newest to oldest. The server always derives ownership from the
+JWT and never accepts a reporter ID as a query parameter.
+
+* **Headers**:
+  - `Authorization: Bearer <JWT_TOKEN>`
+  - `Accept: application/json`
+* **Success Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "reports": [
+      {
+        "id": "66e640ee3d3540355741abcd",
+        "targetType": "user",
+        "contextType": "chat",
+        "reason": "harassment_or_abusive_behaviour",
+        "details": "The member repeatedly sent threatening messages.",
+        "status": "pending",
+        "createdAt": "2026-09-14T01:00:00.000Z"
+      }
+    ]
+  }
+  ```
+* **Statuses**: `pending`, `reviewed`, or `dismissed`. The client presents
+  these as high-level progress only and must not imply an enforcement outcome.
+* **Privacy**: The response omits `reporterId`, target/context IDs, moderator
+  notes, and enforcement details. A member cannot request another account's
+  reports.
+* **Empty state**: An account with no reports receives `200 OK` with
+  `"reports": []`; the client must not fill this state with sample records.
+* **Authentication errors**: `401 Unauthorized` for a missing/current-account
+  failure and `403 Forbidden` for an invalid or expired JWT.
+
+There is no public or moderator `GET /api/reports` endpoint in the MVP. A future
+moderator endpoint requires a separate authorization and privacy review.

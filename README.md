@@ -15,6 +15,56 @@ The project is organised as a monorepo containing:
 
 ---
 
+## 🎯 Coursework Evaluation Quick Links
+
+- **🚀 Assessor 3-Minute Live Demo Guide**: [`docs/demo-guide.md`](docs/demo-guide.md)
+- **🌐 Production Web Portal**: [https://kiwishare.online](https://kiwishare.online)
+- **☁️ Production Backend API**: [https://kiwishare.onrender.com](https://kiwishare.onrender.com)
+- **📱 Android APK Releases**: [GitHub Releases](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/releases)
+- **🏛️ System Architecture & Native Integrations**: [`docs/architecture.md`](docs/architecture.md)
+- **🔒 Cybersecurity & OWASP Top 10 Blueprint**: [`docs/security-owasp.md`](docs/security-owasp.md)
+
+---
+
+## 📋 COMPSCI 734 Rubric Alignment Matrix
+
+| Evaluation Criteria | KiwiShare Implementation Evidence & Deliverables | Core Documentation |
+| :--- | :--- | :--- |
+| **Integrated Solution** *(Mobile + Web + Cloud)* | **Flutter App** (buyer/seller mobile UX), **React/Vite Portal** (administration & metrics), **Koa Node.js REST API**, **MongoDB Atlas** (ReplicaSet cluster). | [`docs/architecture.md`](docs/architecture.md)<br>[`docs/demo-guide.md`](docs/demo-guide.md) |
+| **Technical Mastery** *(Flutter & Cloud Tools)* | Declarative GoRouter routing, Provider state management, MongoDB 2dsphere geo-indexing, Cloudflare R2 S3-presigned URLs, atomic sessions. | [`docs/architecture.md`](docs/architecture.md)<br>[`mobile/lib/`](mobile/lib/) |
+| **Independent Learning** *(Beyond Course Material)* | **Voice audio recording/playback & FFmpeg transcoding**; **Cloudflare R2 edge storage**; **AI-powered listing generation via Gemini**; **Vector OpenStreetMap**; **Crypto QR handover claims**. | *See "Beyond Course Material" below* |
+| **Genuine User Need** *(Second-hand trust)* | Addresses circular economy barriers in Aotearoa: verified student badges, user Trust Scores (0-100), and anti-ghosting in-person handover verification. | [`docs/product-requirements/`](docs/product-requirements/) |
+| **Modern Mobile Capabilities** | **Camera** (`image_picker`), **QR Scanner** (`mobile_scanner`), **Microphone/Audio** (`record` + `just_audio`), **GPS/Geocoding** (`geolocator`), **Interactive Maps** (`flutter_map`), **Push Notifications** (`firebase_messaging`). | [`docs/architecture.md#3`](docs/architecture.md) |
+| **Software Architecture** | Decoupled RESTful layer, Mongoose schema modeling, MongoDB transactional isolation (`runMongoTransaction`), unified API error filter. | [`docs/architecture.md`](docs/architecture.md)<br>[`docs/api-spec.md`](docs/api-spec.md) |
+| **Software Engineering Practices** | PNPM Monorepo, strict TypeScript typing, automated Lint/Formatting, Husky git hooks, Conventional Commits + Semantic Versioning. | [`.github/workflows/`](.github/workflows/) |
+| **Rigorous Testing Strategy** | 12 backend test suites, multi-layered Flutter unit/widget/integration test suites, detailed subsystem verification reports. | [`docs/testing-strategy/`](docs/testing-strategy/) |
+| **Cybersecurity & Privacy** | JWT authentication, bcrypt salt rounds 12, rate limiting, removal of technology banners, MongoDB TTL auto-expiring QR tokens, chat sanitization. | [`docs/security-owasp.md`](docs/security-owasp.md) |
+| **Project Management** | Formal Git Flow (`main`, `pre`, `feature/*`, `hotfix/*`), automated PR assignments, release notes generation, continuous integration. | [`docs/git-flow.md`](docs/git-flow.md) |
+| **Realistic Deployment** | Fully live in production: custom domain with SSL (`kiwishare.online`), Render cloud hosting, MongoDB Atlas cluster, GitHub Releases APKs. | [`docs/deployment.md`](docs/deployment.md) |
+| **Communication & Rationale** | Comprehensive markdown blueprints covering schemas, OWASP controls, UI design specifications, and release operations. | [`docs/`](docs/) |
+
+---
+
+## 🚀 Independent Learning: Technologies Applied Beyond Course Scope
+
+To elevate KiwiShare beyond standard coursework expectations, the team researched, benchmarked, and implemented several advanced technologies:
+
+1. **Hardware Voice Messaging & Server-Side Audio Transcoding**:
+   - Integrated hardware microphone capture (`record`) and real-time audio playback (`just_audio`) within chat threads.
+   - Deployed a statically bundled `ffmpeg-static` worker on the Koa backend to validate, clean, and transcode raw client voice memos before distribution.
+2. **High-Throughput Cloudflare R2 S3-Presigned Architecture**:
+   - Rather than streaming large binary photos through the Node.js API process (which risks memory bloat), the backend generates time-limited S3 presigned PUT URLs, enabling clients to upload media directly to edge storage.
+3. **Cryptographic In-Person QR Handover Protocol**:
+   - Designed an in-person exchange system using cryptographically hashed single-use tokens (`qr_flutter` display + `mobile_scanner` real-time camera recognition) executed in atomic MongoDB sessions to eliminate ghosting and delivery disputes.
+4. **Server-Side AI Listing Assistant (Google Gemini)**:
+   - Integrated Google Gemini (`gemini-2.5-flash-lite`) via backend service APIs to generate intelligent descriptions, condition tags, and sustainability badges from raw user titles.
+5. **Vector OpenStreetMap Native Mapping**:
+   - Implemented `flutter_map` and `latlong2` vector tiling as a privacy-friendly, open-source alternative to proprietary map SDKs.
+6. **Automated Monorepo Release & Versioning Pipeline**:
+   - Built a custom GitHub Actions CD pipeline utilizing `standard-version` and Conventional Commits to automatically calculate semantic versions, publish changelogs, tag Git commits, and build cross-platform binaries on merges to `main`.
+
+---
+
 ## Repository Structure
 
 ```text
