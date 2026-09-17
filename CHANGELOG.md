@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.2.0 (2026-09-10)
+
+### Features
+
+* **mobile**: connect publish form to listing API (#79)
+* **report**: add contextual report form and widget coverage (#101)
+* **chat**: implement authenticated text chat flow (#83)
+* **chat**: support photo messages and uploads (#97)
+* **chat**: support voice audio messages (#96)
+* **chat**: deliver push notifications for incoming messages (#84)
+* **chat**: support swipe to delete conversations (#95)
+* **chat**: deliver realtime read receipts and unread badge (#217)
+* **meetups**: add meetup coordination and scheduling feature
+* **notifications**: add watchlist price-drop push notifications (#194)
+* **suggestions**: add AI listing suggestions
+* **web**: add admin portal transfer and user management function
+
+### Bug Fixes
+
+* **chat**: sanitise and moderate text messages (#98)
+* **chat**: mark incoming messages as read and reconcile unread state (#187)
+* **mobile**: preserve context after publish login (#185)
+* **mobile**: improve contextual notification permission UX (#227)
+* **android**: correct adaptive launcher icon rendering (#228)
+* **server**: harden publish validation and fix daily cap race conditions
+
 ## 1.1.0 (2026-08-11)
 
 
