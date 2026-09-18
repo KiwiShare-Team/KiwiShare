@@ -32,7 +32,7 @@ The project is organised as a monorepo containing:
 | :--- | :--- | :--- |
 | **Integrated Solution** *(Mobile + Web + Cloud)* | **Flutter App** (buyer/seller mobile UX), **React/Vite Portal** (administration & metrics), **Koa Node.js REST API**, **MongoDB Atlas** (ReplicaSet cluster). | [`docs/architecture.md`](docs/architecture.md)<br>[`docs/demo-guide.md`](docs/demo-guide.md) |
 | **Technical Mastery** *(Flutter & Cloud Tools)* | Declarative GoRouter routing, Provider state management, MongoDB 2dsphere geo-indexing, Cloudflare R2 S3-presigned URLs, atomic sessions. | [`docs/architecture.md`](docs/architecture.md)<br>[`mobile/lib/`](mobile/lib/) |
-| **Independent Learning** *(Beyond Course Material)* | **Voice audio recording/playback & FFmpeg transcoding**; **Cloudflare R2 edge storage**; **AI-powered listing generation via Gemini**; **Vector OpenStreetMap**; **Crypto QR handover claims**. | *See "Beyond Course Material" below* |
+| **Independent Learning** *(Beyond Course Material)* | **Stripe Escrow Payments & NZ 15% GST Engine**; **Voice audio recording/playback & FFmpeg transcoding**; **Cloudflare R2 edge storage**; **AI-powered listing generation via Gemini**; **Vector OpenStreetMap**; **Crypto QR handover claims**. | *See "Beyond Course Material" below* |
 | **Genuine User Need** *(Second-hand trust)* | Addresses circular economy barriers in Aotearoa: verified student badges, user Trust Scores (0-100), and anti-ghosting in-person handover verification. | [`docs/product-requirements/`](docs/product-requirements/) |
 | **Modern Mobile Capabilities** | **Camera** (`image_picker`), **QR Scanner** (`mobile_scanner`), **Microphone/Audio** (`record` + `just_audio`), **GPS/Geocoding** (`geolocator`), **Interactive Maps** (`flutter_map`), **Push Notifications** (`firebase_messaging`). | [`docs/architecture.md#3`](docs/architecture.md) |
 | **Software Architecture** | Decoupled RESTful layer, Mongoose schema modeling, MongoDB transactional isolation (`runMongoTransaction`), unified API error filter. | [`docs/architecture.md`](docs/architecture.md)<br>[`docs/api-spec.md`](docs/api-spec.md) |
@@ -62,6 +62,10 @@ To elevate KiwiShare beyond standard coursework expectations, the team researche
    - Implemented `flutter_map` and `latlong2` vector tiling as a privacy-friendly, open-source alternative to proprietary map SDKs.
 6. **Automated Monorepo Release & Versioning Pipeline**:
    - Built a custom GitHub Actions CD pipeline utilizing `standard-version` and Conventional Commits to automatically calculate semantic versions, publish changelogs, tag Git commits, and build cross-platform binaries on merges to `main`.
+7. **Stripe Escrow Payments & New Zealand IRD 15% GST Compliance Engine**:
+   - Researched, architected, and deployed a production-grade escrow payment system using Stripe Hosted Checkout, real-time webhooks with HMAC-SHA256 signature verification (`stripe.webhooks.constructEvent`), and atomic escrow holds.
+   - Built a compliant New Zealand tax calculation engine aligned with Inland Revenue Department (IRD) regulations: computes 15% Goods and Services Tax (GST) strictly on the KiwiShare platform service fee while recognizing second-hand peer-to-peer item transactions between private individuals as tax-exempt under the NZ GST Act 1985.
+   - Integrated end-to-end payment flows across mobile and web with item state synchronization, deep link redirection, automated seller payout releases upon QR verification, and 48-hour unmet refund claim protection.
 
 ---
 
