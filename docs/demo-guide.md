@@ -64,7 +64,7 @@ The production database is pre-populated with realistic New Zealand community li
    - On a second phone (or logged in as `testbuyer@kiwishare.online`):
    - Open order `#ORD_DEMO_MEETUP_2026` -> Tap **"Scan Handover QR Code"**.
    - Aim the camera at the Seller's QR screen.
-   - **Outcome**: The transaction completes atomically via MongoDB session. The buyer receives confirmed ownership, the seller's Trust Score increments by **+5 points**, and the item status automatically changes to `sold`.
+   - **Outcome**: The trusted buyer completes the handover through the valid QR flow. The transaction commits atomically, the item status changes to `sold`, and the buyer and seller each receive exactly **+5 Trust Score points once**. Public profile and product views show exact scores through 200 and `200+` above 200, while administrators continue to see the exact stored score.
 
 *(Alternatively, evaluate the reverse order `#ORD_DEMO_BIKE_SCANNER_2026` where `moviegoer24@gmail.com` acts as the Buyer scanning `testbuyer@kiwishare.online`'s bicycle).*
 
