@@ -18,17 +18,14 @@ could not run its FFmpeg verification binary.
 
 ## Post-fix voice composer
 
-The screenshot below is a deterministic 390 x 844 Flutter widget rendering of
-the final recording state after tapping the microphone. It verifies that the
+The screenshot below was captured from the real Flutter web rendering of the
+final conversation screen after tapping the microphone. It verifies that the
 composer switches to the dedicated recording bar, exposes cancel and send
 controls, and keeps the rest of the conversation layout stable.
 
 ![Voice recording composer after tapping the microphone](after-voice-tap-bar.png)
 
-The widget snapshot is protected by the
+The same recording state is also protected by the
 `captures the voice recording composer for review evidence` regression test.
-Flutter widget tests intentionally render text with their deterministic test
-font, so the screenshot is evidence of layout and control state rather than a
-device-font preview. The local development machine does not have an Android
-AVD; automated Flutter and API regression coverage is recorded in the PR
-description.
+The local development machine does not have an Android AVD; automated Flutter
+and API regression coverage is recorded in the PR description.
