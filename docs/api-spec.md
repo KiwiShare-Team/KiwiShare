@@ -599,8 +599,12 @@ Creates one report for the authenticated member.
 * **Details**: required after trimming; 10–1000 characters.
 * **Server-owned fields**: `id`, `reporterId`, `status`, and `createdAt`. Any
   same-named values sent by a client are ignored.
-* **Duplicate protection**: the same reporter, target, context, and reason is
-  rejected for 10 minutes after a successful submission.
+* **One report per target**: a member can report a particular user or listing
+  only once, regardless of reason, context, or elapsed time. Other members can
+  still report the same target. General safety reports are not target-limited.
+  The backend uses a database-backed deduplication key to protect concurrent
+  requests, while the mobile form also disables submission while one request is
+  pending.
 * **Email confirmation**: when `RESEND_API_KEY` is configured, the backend sends
   a receipt to the authenticated member's stored email address. The receipt
   includes the reporter name and email, a readable reason, submitted details,
@@ -631,7 +635,7 @@ Creates one report for the authenticated member.
   - `403 Forbidden`: the reporter is not a participant in the supplied private
     chat or transaction context.
   - `404 Not Found`: target or related context does not exist.
-  - `409 Conflict`: a matching report was submitted in the duplicate window.
+  - `409 Conflict`: this member has already reported the same user or listing.
 
 ### `GET /api/reports`
 
