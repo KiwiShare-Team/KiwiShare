@@ -606,8 +606,11 @@ Creates one report for the authenticated member.
   requests, while the mobile form also disables submission while one request is
   pending.
 * **Email confirmation**: when `RESEND_API_KEY` is configured, the backend sends
-  a receipt to the authenticated member's stored email address. Delivery failure
-  does not undo the report or change the response status.
+  a receipt to the authenticated member's stored email address. The receipt
+  includes the reporter name and email, a readable reason, submitted details,
+  reference, and submitted time. Listing reports also include the validated
+  listing title; user and general reports omit that row. Delivery failure does
+  not undo the report or change the response status.
 * **Success Response (201 Created)**:
   ```json
   {
