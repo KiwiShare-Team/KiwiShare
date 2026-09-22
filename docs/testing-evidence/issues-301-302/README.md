@@ -29,3 +29,14 @@ The same recording state is also protected by the
 `captures the voice recording composer for review evidence` regression test.
 The local development machine does not have an Android AVD; automated Flutter
 and API regression coverage is recorded in the PR description.
+
+## Post-fix chat participant avatars
+
+The Chat list now consumes the `participant.avatarUrl` already returned by the
+conversation API and renders each counterpart's profile photo. A styled
+fallback remains for users without an avatar or when an image cannot load.
+
+![Chat list displaying participant profile photos](after-chat-participant-avatars.jpg)
+
+The `renders the participant profile photo in each chat row` widget regression
+test verifies that the API model's avatar URL reaches the rendered chat tile.
