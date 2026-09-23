@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "353504132004-5idmotm27ntcd9187lp1dmk8ffli1flb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.kiwishare.android",
+            "certificate_hash": "16451ecae5f6e8bd85b8457cc783d166dfdac9b0"
+          }
+        },
+        {
           "client_id": "353504132004-v9hv2iktcb0164pgsrp9ov41ihc7kba2.apps.googleusercontent.com",
           "client_type": 3
         }
