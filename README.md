@@ -113,9 +113,9 @@ project-implementation-five-guys/
 
 All developers need:
 
-- **Node.js 20+**
-- **pnpm**
-- **Flutter**
+- **Node.js 22.23.2** (the version used by GitHub Actions)
+- **pnpm 9.15.9** (declared in `package.json`)
+- **Flutter 3.44.8 / Dart 3.12.2** (the version used by mobile and release workflows)
 - **Git**
 
 Check your environment:
@@ -166,6 +166,8 @@ flutter pub get
 ```
 
 for the Flutter client.
+
+CI uses `pnpm install --frozen-lockfile` and `flutter pub get --enforce-lockfile` so dependency resolution cannot silently update the committed lockfiles. The local `pnpm bootstrap` command remains convenient for development; review any lockfile changes before committing them. GitHub Actions verification is pending while the organisation's CI quota is unavailable.
 
 ---
 

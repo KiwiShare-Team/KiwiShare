@@ -28,7 +28,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.23.2'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Bump Version and Generate Changelog
         id: bump_version
@@ -51,9 +59,9 @@ jobs:
           else
             echo "Version $PKG_VERSION is already tagged. Calculating next version..."
             if [ "${{ github.ref_name }}" = "pre" ]; then
-              npx standard-version --prerelease pre --skip.commit --skip.tag
+              pnpm exec standard-version --prerelease pre --skip.commit --skip.tag
             else
-              npx standard-version --skip.commit --skip.tag
+              pnpm exec standard-version --skip.commit --skip.tag
             fi
             NEW_VERSION=$(node -p "require('./package.json').version")
             NEW_TAG="v$NEW_VERSION"
@@ -97,12 +105,13 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          flutter-version: '3.44.8'
           cache: true
 
       - name: Install dependencies
         run: |
           cd mobile
-          flutter pub get
+          flutter pub get --enforce-lockfile
 
       - name: Configure Android release signing
         if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
@@ -149,12 +158,13 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          flutter-version: '3.44.8'
           cache: true
 
       - name: Install dependencies
         run: |
           cd mobile
-          flutter pub get
+          flutter pub get --enforce-lockfile
 
       - name: Build iOS Application (No Codesign)
         run: |
