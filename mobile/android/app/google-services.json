@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "353504132004-g358ohfr7doidm5fl9ptv0v3dfu61tov.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.kiwishare.android",
+            "certificate_hash": "fbe05658954f9e66ab2eeca346afb55c8a52ea3f"
+          }
+        },
+        {
           "client_id": "353504132004-v9hv2iktcb0164pgsrp9ov41ihc7kba2.apps.googleusercontent.com",
           "client_type": 3
         }
