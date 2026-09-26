@@ -11,7 +11,8 @@ The project is organised as a monorepo containing:
 - **Koa backend** — Node.js + TypeScript REST API
 - **MongoDB Atlas** — application data storage
 - **Firebase** — authentication and supporting mobile services
-- **Render** — deployed backend environment
+- **Cloudflare Workers** — production React/Vite web hosting at `kiwishare.online`
+- **Render** — deployed Koa backend API environment
 
 ---
 
@@ -40,7 +41,7 @@ The project is organised as a monorepo containing:
 | **Rigorous Testing Strategy** | 19 backend Jest test files and Flutter unit/widget/integration test suites, plus detailed subsystem verification reports. Run the current repository test scripts for the authoritative suite inventory. | [`docs/testing-strategy/`](docs/testing-strategy/) |
 | **Cybersecurity & Privacy** | JWT authentication, bcrypt salt rounds 12, rate limiting, removal of technology banners, MongoDB TTL auto-expiring QR tokens, chat sanitization. | [`docs/security-owasp.md`](docs/security-owasp.md) |
 | **Project Management** | Formal Git Flow (`main`, `pre`, `feature/*`, `hotfix/*`), automated PR assignments, release notes generation, continuous integration. | [`docs/git-flow.md`](docs/git-flow.md) |
-| **Realistic Deployment** | Production deployment uses the `kiwishare.online` web portal, Render backend and MongoDB Atlas; Android APK releases are distributed through GitHub Releases. | [`docs/deployment.md`](docs/deployment.md) |
+| **Realistic Deployment** | Production deployment uses Cloudflare Workers for the `kiwishare.online` React portal, Render for the Koa API, Cloudflare R2 for media, and MongoDB Atlas for persistence; Android APK releases are distributed through GitHub Releases. | [`docs/deployment.md`](docs/deployment.md) |
 | **Communication & Rationale** | Comprehensive markdown blueprints covering schemas, OWASP controls, UI design specifications, and release operations. | [`docs/`](docs/) |
 
 ---
@@ -354,7 +355,7 @@ The computer and phone must be reachable on the same network.
 
 # React Web Application
 
-`web/` is a separate React + Vite application.
+`web/` is a separate React + Vite application. The production bundle is served from a Cloudflare Worker at [https://kiwishare.online](https://kiwishare.online). The Worker serves Vite static assets at the edge and applies SPA fallback routing so React Router URLs continue to work on direct navigation and refresh. The browser continues to call the Koa API hosted on Render.
 
 Run it with the local backend:
 
@@ -607,7 +608,7 @@ pnpm build:all
 | Authentication / Mobile Services | Firebase |
 | Email | Resend |
 | Object Storage | Cloudflare R2 |
-| Deployment | Render |
+| Deployment | Cloudflare Workers (web) + Render (API) |
 | Package Management | pnpm |
 | Source Control / CI | GitHub / GitHub Actions |
 

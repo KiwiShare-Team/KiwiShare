@@ -12,7 +12,7 @@ Assessors can interact with the live production deployment immediately without c
 
 | Component | Production Access URL | Notes |
 | :--- | :--- | :--- |
-| **Web Portal (React + Vite)** | **[https://kiwishare.online](https://kiwishare.online)** | SSL Encrypted via Cloudflare Edge; Hosted on Render Static |
+| **Web Portal (React + Vite)** | **[https://kiwishare.online](https://kiwishare.online)** | Hosted as static assets on Cloudflare Workers with SPA edge routing |
 | **Backend RESTful API (Koa)** | **[https://kiwishare.onrender.com](https://kiwishare.onrender.com)** | Deployed Node.js 22 LTS container on Render Cloud |
 | **MongoDB Atlas Production Cluster** | `kiwishare.ll1go7c.mongodb.net/kiwishare_prod` | High-availability 3-node replica set with GeoJSON indexes |
 | **Android APK Direct Download** | **[GitHub Releases](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/releases)** | Download `KiwiShare-Android-vX.X.X.apk` directly to test on any Android phone |
@@ -84,4 +84,4 @@ The production database is pre-populated with realistic New Zealand community li
 - **Decoupled Architecture**: Koa RESTful API + MongoDB Atlas + React Web + Flutter Multiplatform.
 - **Atomic Operations**: Critical handover transfers execute within `runMongoTransaction` sessions to prevent race conditions.
 - **Cloud-Native Edge Storage**: Cloudflare R2 S3-compatible bucket eliminates binary upload load on the application server.
-- **Automated CI/CD**: Merges to `main` trigger automated Semantic Versioning tags, Android APK generation, Firebase distribution, and Render production auto-deployments.
+- **Automated CI/CD**: Web changes merged to `pre` build and deploy the React portal to Cloudflare Workers when the deployment token is configured; merges to `main` trigger Semantic Versioning tags, Android APK generation, Firebase distribution, and the independent Render backend release flow.
