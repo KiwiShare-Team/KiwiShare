@@ -845,3 +845,12 @@ Chrome (web) • chrome
 ## KiwiShare
 
 Building a safer and more convenient second-hand marketplace across mobile and web.
+
+
+---
+
+## License
+
+KiwiShare is source-available. You may inspect and study the source and contribute to the official project, but reuse, redistribution, deployment, derivative products, and commercial use require prior written permission from the applicable copyright holder(s).
+
+See [LICENSE](./LICENSE) for the complete terms.
