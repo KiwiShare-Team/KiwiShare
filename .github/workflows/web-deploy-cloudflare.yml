@@ -20,6 +20,7 @@ env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CLOUDFLARE_ACCOUNT_ID: cdc04de9bc4c6a41b5003758e505a0d1
   VITE_API_URL: https://kiwishare.onrender.com/api
+  VITE_GOOGLE_CLIENT_ID: 353504132004-v9hv2iktcb0164pgsrp9ov41ihc7kba2.apps.googleusercontent.com
 
 jobs:
   build-and-deploy:
