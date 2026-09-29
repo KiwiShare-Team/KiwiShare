@@ -38,7 +38,16 @@ jobs:
             exit 1
           fi
 
-          echo "Android production signing secrets are configured."
+          normalized_keystore="${ANDROID_KEYSTORE_BASE64#*,}"
+          normalized_keystore="$(printf '%s\n' "$normalized_keystore" \
+            | sed '/^-----BEGIN .*-----$/d; /^-----END .*-----$/d' \
+            | tr -d '[:space:]')"
+          if ! printf '%s' "$normalized_keystore" | base64 --decode >/dev/null; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not valid Base64, even after removing whitespace and an optional data-URL prefix."
+            exit 1
+          fi
+
+          echo "Android production signing secrets are configured and the keystore is valid Base64."
 
   version:
     name: Calculate Version & Changelog
@@ -132,7 +141,7 @@ jobs:
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           channel: 'stable'
-          flutter-version: '3.44.8'
+          flutter-version: '3.44.9'
           cache: true
 
       - name: Install dependencies
@@ -141,8 +150,13 @@ jobs:
           flutter pub get --enforce-lockfile
 
       - name: Configure Android release signing
+        shell: bash
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > mobile/android/app/release-keystore.jks
+          normalized_keystore="${ANDROID_KEYSTORE_BASE64#*,}"
+          normalized_keystore="$(printf '%s\n' "$normalized_keystore" \
+            | sed '/^-----BEGIN .*-----$/d; /^-----END .*-----$/d' \
+            | tr -d '[:space:]')"
+          printf '%s' "$normalized_keystore" | base64 --decode > mobile/android/app/release-keystore.jks
           cat > mobile/android/key.properties <<EOF
           storePassword=$ANDROID_KEYSTORE_PASSWORD
           keyPassword=$ANDROID_KEY_PASSWORD
@@ -211,7 +225,7 @@ jobs:
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           channel: 'stable'
-          flutter-version: '3.44.8'
+          flutter-version: '3.44.9'
           cache: true
 
       - name: Install dependencies
