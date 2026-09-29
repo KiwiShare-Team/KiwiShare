@@ -597,6 +597,47 @@ pnpm build:all
 
 ---
 
+# Order, Payment & Handover State Machine
+
+The backend is the source of truth for transaction progression. Mobile and Web must render the same server-derived flags (isPaid, isMeetupConfirmed, and isHandoverReady) rather than inferring different rules from status strings.
+
+**Handover invariant:** a QR code or direct handover confirmation is available only when **payment is satisfied AND the meetup is confirmed**. Payment and meetup arrangement may happen in either order.
+
+| Order state | Payment | Meetup | QR / handover | Expected next action |
+|---|---|---|---|---|
+| pending_payment | Not paid | None / proposed | Locked | Buyer pays and/or parties agree a meetup |
+| pending_payment | Not paid | Confirmed | Locked | Buyer pays |
+| paid | Paid | None / proposed / declined | Locked | Parties confirm meetup |
+| meeting_scheduled | Paid | Confirmed | Unlocked | In-person QR scan or bilateral handover confirmation |
+| completed / seller_paid | Paid | Completed | Consumed / read-only | Review / history |
+| refunded / cancelled / disputed | Terminal | N/A | Locked | No handover |
+
+### Required transitions
+
+1. **Create order** → pending_payment.
+2. **Pay first** → paid. The listing is reserved/removed from concurrent purchase, but ownership does not transfer yet.
+3. **Propose or reschedule meetup** → proposal becomes proposed; the order remains paid if already paid, otherwise pending_payment. Any previously active handover QR is cancelled.
+4. **Confirm meetup before payment** → proposal becomes confirmed, order remains pending_payment, QR remains locked.
+5. **Confirm meetup after payment** → order becomes meeting_scheduled, and the server may issue the handover QR.
+6. **Pay after meetup is already confirmed** → order becomes meeting_scheduled, and the server may issue the handover QR.
+7. **Decline/cancel meetup** → QR is cancelled and the order falls back to paid or pending_payment based on payment state.
+8. **Handover completion** → requires isPaid == true and isMeetupConfirmed == true; then QR claim or bilateral confirmation can complete the order and transfer ownership.
+9. **48-hour buyer refund eligibility** starts from paidAt, not order creation time, and only applies while no meetup has been confirmed.
+
+The server writes proposalStatus: confirmed; clients also read legacy accepted as confirmed for backward compatibility. Clients must never fabricate QR tokens. Web renders a real QR from the server-issued qrToken; Mobile does the same with qr_flutter.
+
+### Cross-platform UI rules
+
+- **Pay** is shown only when the active order is not paid.
+- **Schedule / reschedule meetup** is available on any non-terminal active order, whether payment happened first or not.
+- **Meetup & QR / Confirm Receipt / Confirm Handover** is shown only when isHandoverReady is true.
+- **Invoice** is shown only after payment (or completion).
+- A paid order with no confirmed meetup is displayed as **Paid · Awaiting Meetup**.
+- A confirmed meetup with no payment is displayed as **Meetup Confirmed · Payment Required**.
+- A paid + confirmed order is displayed as **Ready for Handover**.
+
+---
+
 # Tech Stack
 
 | Layer | Technology |
