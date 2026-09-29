@@ -112,6 +112,8 @@ jobs:
     needs: version
     runs-on: ubuntu-latest
     env:
+      # Keep Gradle stable and reusable on ephemeral GitHub-hosted runners.
+      GRADLE_OPTS: -Dorg.gradle.vfs.watch=false -Dorg.gradle.caching=true
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -127,6 +129,11 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+          cache: 'gradle'
+          cache-dependency-path: |
+            mobile/android/**/*.gradle*
+            mobile/android/gradle/wrapper/gradle-wrapper.properties
+            mobile/pubspec.lock
 
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
@@ -158,14 +165,14 @@ jobs:
       - name: Build production Android APK
         run: |
           cd mobile
-          flutter build apk --release \
+          flutter build apk --release --no-pub \
             --build-name "${{ needs.version.outputs.new_version }}" \
             --build-number "${{ github.run_number }}"
 
       - name: Build production Android App Bundle
         run: |
           cd mobile
-          flutter build appbundle --release \
+          flutter build appbundle --release --no-pub \
             --build-name "${{ needs.version.outputs.new_version }}" \
             --build-number "${{ github.run_number }}"
 
