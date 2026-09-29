@@ -69,14 +69,6 @@ jobs:
         with:
           node-version: '22.23.2'
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-        with:
-          version: 9.15.9
-
-      - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
-
       - name: Bump Version and Generate Changelog
         id: bump_version
         run: |
@@ -85,25 +77,41 @@ jobs:
 
           git fetch --tags origin
 
-          # Check if the version in package.json already has a remote tag
           PKG_VERSION=$(node -p "require('./package.json').version")
-          PKG_TAG="v$PKG_VERSION"
-          REMOTE_TAG_EXISTS=$(git ls-remote --tags origin "refs/tags/$PKG_TAG" | wc -l)
+          LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
+          LATEST_VERSION="${LATEST_TAG#v}"
 
-          if [ "$REMOTE_TAG_EXISTS" -eq "0" ]; then
-            echo "Version $PKG_VERSION in package.json is not tagged yet. Using $PKG_TAG."
-            NEW_VERSION="$PKG_VERSION"
-            NEW_TAG="$PKG_TAG"
-          else
-            echo "Version $PKG_VERSION is already tagged. Calculating next version..."
-            if [ "${{ github.ref_name }}" = "pre" ]; then
-              pnpm exec standard-version --prerelease pre --skip.commit --skip.tag
-            else
-              pnpm exec standard-version --skip.commit --skip.tag
-            fi
-            NEW_VERSION=$(node -p "require('./package.json').version")
-            NEW_TAG="v$NEW_VERSION"
+          # Never reuse or move an existing release tag. If package.json is
+          # behind the newest tag, advance the newest tag by one patch version.
+          NEW_VERSION=$(PKG_VERSION="$PKG_VERSION" LATEST_VERSION="$LATEST_VERSION" node -e '
+            const parse = (value) => value.split(".").map((part) => Number.parseInt(part, 10));
+            const compare = (left, right) => {
+              for (let i = 0; i < 3; i += 1) {
+                if (left[i] !== right[i]) return left[i] - right[i];
+              }
+              return 0;
+            };
+            const pkg = parse(process.env.PKG_VERSION);
+            const latestText = process.env.LATEST_VERSION;
+            if (!latestText) {
+              console.log(process.env.PKG_VERSION);
+            } else {
+              const latest = parse(latestText);
+              console.log(compare(pkg, latest) > 0
+                ? process.env.PKG_VERSION
+                : `${latest[0]}.${latest[1]}.${latest[2] + 1}`);
+            }
+          ')
+          NEW_TAG="v$NEW_VERSION"
+
+          if git rev-parse --verify --quiet "refs/tags/$NEW_TAG" >/dev/null; then
+            echo "::error::Calculated release tag already exists: $NEW_TAG"
+            exit 1
           fi
+
+          echo "package.json version: $PKG_VERSION"
+          echo "Latest release tag: ${LATEST_TAG:-none}"
+          echo "New release tag: $NEW_TAG"
 
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
