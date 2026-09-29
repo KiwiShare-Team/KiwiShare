@@ -1,0 +1,66 @@
+name: Deploy Web to Cloudflare
+
+on:
+  push:
+    branches: [pre]
+    paths:
+      - 'web/**'
+      - 'worker.js'
+      - 'wrangler.toml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/web-deploy-cloudflare.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: cdc04de9bc4c6a41b5003758e505a0d1
+  VITE_API_URL: https://kiwishare.onrender.com/api
+  VITE_FIREBASE_API_KEY: AIzaSyCPP64czxJViaVJSS4uGo1LEeNWsqA3D2o
+  VITE_FIREBASE_AUTH_DOMAIN: kiwishare-2791f.firebaseapp.com
+  VITE_FIREBASE_PROJECT_ID: kiwishare-2791f
+  VITE_FIREBASE_STORAGE_BUCKET: kiwishare-2791f.firebasestorage.app
+  VITE_FIREBASE_MESSAGING_SENDER_ID: 353504132004
+  VITE_FIREBASE_APP_ID: 1:353504132004:web:649aaff994c1ca4fe9df31
+  VITE_FIREBASE_MEASUREMENT_ID: G-5MJ3X084VR
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.2'
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build production web bundle
+        run: pnpm --filter web run build
+      - name: Deploy Worker
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+      - name: Verify production edge
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: |
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 \
+            --dump-header /tmp/kiwishare-headers.txt \
+            --output /dev/null \
+            https://kiwishare.online/
+          grep -qi '^x-kiwishare-edge: cloudflare-worker' /tmp/kiwishare-headers.txt
+      - name: Deployment token not configured
+        if: env.CLOUDFLARE_API_TOKEN == ''
+        run: echo 'CLOUDFLARE_API_TOKEN is not configured; build passed and deployment was skipped.'

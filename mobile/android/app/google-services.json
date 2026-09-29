@@ -7,6 +7,58 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:353504132004:android:78a6684fb0061d4ce9df31",
+        "android_client_info": {
+          "package_name": "app.kiwishare.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "353504132004-5idmotm27ntcd9187lp1dmk8ffli1flb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.kiwishare.android",
+            "certificate_hash": "16451ecae5f6e8bd85b8457cc783d166dfdac9b0"
+          }
+        },
+        {
+          "client_id": "353504132004-g358ohfr7doidm5fl9ptv0v3dfu61tov.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.kiwishare.android",
+            "certificate_hash": "fbe05658954f9e66ab2eeca346afb55c8a52ea3f"
+          }
+        },
+        {
+          "client_id": "353504132004-v9hv2iktcb0164pgsrp9ov41ihc7kba2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHlxHvIQVXZVhceG_SUs4mnUv3CkgrOpA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "353504132004-v9hv2iktcb0164pgsrp9ov41ihc7kba2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "353504132004-ljdbt8oa154268k63uk73gkeviacpfr1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kiwishare.ios"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:353504132004:android:24aa2b6b3f819e41e9df31",
         "android_client_info": {
           "package_name": "com.kiwishare.andriod"

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "measuredAt": "2026-09-27T21:53:56.643Z",
+  "target": "https://kiwishare.onrender.com",
+  "environment": {
+    "node": "v22.23.2",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "cpuModel": "Apple M4",
+    "logicalCpus": 10
+  },
+  "configuration": {
+    "requests": 80,
+    "concurrency": 4,
+    "warmupRequests": 8,
+    "timeoutMs": 10000,
+    "requestMix": [
+      { "name": "health", "path": "/health", "weight": 10 },
+      { "name": "listing", "path": "/api/usedItems?limit=12", "weight": 40 },
+      { "name": "discovery-options", "path": "/api/usedItems/discovery-options", "weight": 30 },
+      { "name": "categories", "path": "/api/categories", "weight": 20 }
+    ]
+  },
+  "thresholds": {
+    "maxP95Ms": 1500,
+    "maxErrorRate": 0.01
+  },
+  "result": {
+    "durationSeconds": 14.076,
+    "throughputRequestsPerSecond": 5.68,
+    "overall": {
+      "requests": 80,
+      "successes": 80,
+      "failures": 0,
+      "errorRate": 0,
+      "latencyMs": { "min": 213.55, "p50": 702.47, "p95": 1013.07, "p99": 1250.5, "max": 1250.5 }
+    },
+    "endpoints": {
+      "health": {
+        "path": "/health",
+        "weight": 10,
+        "requests": 8,
+        "successes": 8,
+        "failures": 0,
+        "errorRate": 0,
+        "latencyMs": { "min": 213.55, "p50": 225.08, "p95": 322.05, "p99": 322.05, "max": 322.05 }
+      },
+      "listing": {
+        "path": "/api/usedItems?limit=12",
+        "weight": 40,
+        "requests": 32,
+        "successes": 32,
+        "failures": 0,
+        "errorRate": 0,
+        "latencyMs": { "min": 585.13, "p50": 792.81, "p95": 1173.08, "p99": 1250.5, "max": 1250.5 }
+      },
+      "discovery-options": {
+        "path": "/api/usedItems/discovery-options",
+        "weight": 30,
+        "requests": 24,
+        "successes": 24,
+        "failures": 0,
+        "errorRate": 0,
+        "latencyMs": { "min": 579.13, "p50": 602.83, "p95": 773.24, "p99": 936.38, "max": 936.38 }
+      },
+      "categories": {
+        "path": "/api/categories",
+        "weight": 20,
+        "requests": 16,
+        "successes": 16,
+        "failures": 0,
+        "errorRate": 0,
+        "latencyMs": { "min": 577.65, "p50": 587.97, "p95": 745.02, "p99": 745.02, "max": 745.02 }
+      }
+    },
+    "failures": []
+  },
+  "checks": {
+    "p95Latency": { "actualMs": 1013.07, "maximumMs": 1500, "passed": true },
+    "errorRate": { "actual": 0, "maximum": 0.01, "passed": true }
+  },
+  "passed": true
+}

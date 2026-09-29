@@ -11,7 +11,8 @@ The project is organised as a monorepo containing:
 - **Koa backend** — Node.js + TypeScript REST API
 - **MongoDB Atlas** — application data storage
 - **Firebase** — authentication and supporting mobile services
-- **Render** — deployed backend environment
+- **Cloudflare Workers** — production React/Vite web hosting at `kiwishare.online`
+- **Render** — deployed Koa backend API environment
 
 ---
 
@@ -33,14 +34,14 @@ The project is organised as a monorepo containing:
 | **Integrated Solution** *(Mobile + Web + Cloud)* | **Flutter App** (buyer/seller mobile UX), **React/Vite Portal** (administration & metrics), **Koa Node.js REST API**, **MongoDB Atlas** (ReplicaSet cluster). | [`docs/architecture.md`](docs/architecture.md)<br>[`docs/demo-guide.md`](docs/demo-guide.md) |
 | **Technical Mastery** *(Flutter & Cloud Tools)* | Declarative GoRouter routing, Provider state management, MongoDB 2dsphere geo-indexing, Cloudflare R2 S3-presigned URLs, atomic sessions. | [`docs/architecture.md`](docs/architecture.md)<br>[`mobile/lib/`](mobile/lib/) |
 | **Independent Learning** *(Beyond Course Material)* | **Stripe Escrow Payments & NZ 15% GST Engine**; **Voice audio recording/playback & FFmpeg transcoding**; **Cloudflare R2 edge storage**; **AI-powered listing generation via Gemini**; **Vector OpenStreetMap**; **Crypto QR handover claims**. | *See "Beyond Course Material" below* |
-| **Genuine User Need** *(Second-hand trust)* | Addresses circular economy barriers in Aotearoa: verified student badges, user Trust Scores (0-100), and anti-ghosting in-person handover verification. | [`docs/product-requirements/`](docs/product-requirements/) |
+| **Genuine User Need** *(Second-hand trust)* | Addresses circular economy barriers in Aotearoa through verified student badges, Trust Scores, and in-person handover verification. New users start at 100; completed eligible orders award +5 to the buyer and seller. Student verification currently adds +15, with the verification result capped at 200. Public UI shows exact scores through 200 and `200+` above 200; administrators see the exact stored score. Ratings are independent. The QR claim path uses an atomic transaction; the separate two-party meetup confirmation path also completes orders and updates scores but currently uses sequential writes. | [`docs/product-requirements/`](docs/product-requirements/) |
 | **Modern Mobile Capabilities** | **Camera** (`image_picker`), **QR Scanner** (`mobile_scanner`), **Microphone/Audio** (`record` + `just_audio`), **GPS/Geocoding** (`geolocator`), **Interactive Maps** (`flutter_map`), **Push Notifications** (`firebase_messaging`). | [`docs/architecture.md#3`](docs/architecture.md) |
 | **Software Architecture** | Decoupled RESTful layer, Mongoose schema modeling, MongoDB transactional isolation (`runMongoTransaction`), unified API error filter. | [`docs/architecture.md`](docs/architecture.md)<br>[`docs/api-spec.md`](docs/api-spec.md) |
 | **Software Engineering Practices** | PNPM Monorepo, strict TypeScript typing, automated Lint/Formatting, Husky git hooks, Conventional Commits + Semantic Versioning. | [`.github/workflows/`](.github/workflows/) |
-| **Rigorous Testing Strategy** | 12 backend test suites, multi-layered Flutter unit/widget/integration test suites, detailed subsystem verification reports. | [`docs/testing-strategy/`](docs/testing-strategy/) |
+| **Rigorous Testing Strategy** | 19 backend Jest test files and Flutter unit/widget/integration test suites, plus detailed subsystem verification reports. Run the current repository test scripts for the authoritative suite inventory. | [`docs/testing-strategy/`](docs/testing-strategy/) |
 | **Cybersecurity & Privacy** | JWT authentication, bcrypt salt rounds 12, rate limiting, removal of technology banners, MongoDB TTL auto-expiring QR tokens, chat sanitization. | [`docs/security-owasp.md`](docs/security-owasp.md) |
 | **Project Management** | Formal Git Flow (`main`, `pre`, `feature/*`, `hotfix/*`), automated PR assignments, release notes generation, continuous integration. | [`docs/git-flow.md`](docs/git-flow.md) |
-| **Realistic Deployment** | Fully live in production: custom domain with SSL (`kiwishare.online`), Render cloud hosting, MongoDB Atlas cluster, GitHub Releases APKs. | [`docs/deployment.md`](docs/deployment.md) |
+| **Realistic Deployment** | Production deployment uses Cloudflare Workers for the `kiwishare.online` React portal, Render for the Koa API, Cloudflare R2 for media, and MongoDB Atlas for persistence; Android APK releases are distributed through GitHub Releases. | [`docs/deployment.md`](docs/deployment.md) |
 | **Communication & Rationale** | Comprehensive markdown blueprints covering schemas, OWASP controls, UI design specifications, and release operations. | [`docs/`](docs/) |
 
 ---
@@ -113,9 +114,9 @@ project-implementation-five-guys/
 
 All developers need:
 
-- **Node.js 20+**
-- **pnpm**
-- **Flutter**
+- **Node.js 22.23.2** (the version used by GitHub Actions)
+- **pnpm 9.15.9** (declared in `package.json`)
+- **Flutter 3.44.8 / Dart 3.12.2** (the version used by mobile and release workflows)
 - **Git**
 
 Check your environment:
@@ -166,6 +167,8 @@ flutter pub get
 ```
 
 for the Flutter client.
+
+CI uses `pnpm install --frozen-lockfile` and `flutter pub get --enforce-lockfile` so dependency resolution cannot silently update the committed lockfiles. The local `pnpm bootstrap` command remains convenient for development; review any lockfile changes before committing them. GitHub Actions verification is pending while the organisation's CI quota is unavailable.
 
 ---
 
@@ -352,7 +355,7 @@ The computer and phone must be reachable on the same network.
 
 # React Web Application
 
-`web/` is a separate React + Vite application.
+`web/` is a separate React + Vite application. The production bundle is served from a Cloudflare Worker at [https://kiwishare.online](https://kiwishare.online). The Worker serves Vite static assets at the edge and applies SPA fallback routing so React Router URLs continue to work on direct navigation and refresh. The browser continues to call the Koa API hosted on Render.
 
 Run it with the local backend:
 
@@ -594,6 +597,47 @@ pnpm build:all
 
 ---
 
+# Order, Payment & Handover State Machine
+
+The backend is the source of truth for transaction progression. Mobile and Web must render the same server-derived flags (isPaid, isMeetupConfirmed, and isHandoverReady) rather than inferring different rules from status strings.
+
+**Handover invariant:** a QR code or direct handover confirmation is available only when **payment is satisfied AND the meetup is confirmed**. Payment and meetup arrangement may happen in either order.
+
+| Order state | Payment | Meetup | QR / handover | Expected next action |
+|---|---|---|---|---|
+| pending_payment | Not paid | None / proposed | Locked | Buyer pays and/or parties agree a meetup |
+| pending_payment | Not paid | Confirmed | Locked | Buyer pays |
+| paid | Paid | None / proposed / declined | Locked | Parties confirm meetup |
+| meeting_scheduled | Paid | Confirmed | Unlocked | In-person QR scan or bilateral handover confirmation |
+| completed / seller_paid | Paid | Completed | Consumed / read-only | Review / history |
+| refunded / cancelled / disputed | Terminal | N/A | Locked | No handover |
+
+### Required transitions
+
+1. **Create order** → pending_payment.
+2. **Pay first** → paid. The listing is reserved/removed from concurrent purchase, but ownership does not transfer yet.
+3. **Propose or reschedule meetup** → proposal becomes proposed; the order remains paid if already paid, otherwise pending_payment. Any previously active handover QR is cancelled.
+4. **Confirm meetup before payment** → proposal becomes confirmed, order remains pending_payment, QR remains locked.
+5. **Confirm meetup after payment** → order becomes meeting_scheduled, and the server may issue the handover QR.
+6. **Pay after meetup is already confirmed** → order becomes meeting_scheduled, and the server may issue the handover QR.
+7. **Decline/cancel meetup** → QR is cancelled and the order falls back to paid or pending_payment based on payment state.
+8. **Handover completion** → requires isPaid == true and isMeetupConfirmed == true; then QR claim or bilateral confirmation can complete the order and transfer ownership.
+9. **48-hour buyer refund eligibility** starts from paidAt, not order creation time, and only applies while no meetup has been confirmed.
+
+The server writes proposalStatus: confirmed; clients also read legacy accepted as confirmed for backward compatibility. Clients must never fabricate QR tokens. Web renders a real QR from the server-issued qrToken; Mobile does the same with qr_flutter.
+
+### Cross-platform UI rules
+
+- **Pay** is shown only when the active order is not paid.
+- **Schedule / reschedule meetup** is available on any non-terminal active order, whether payment happened first or not.
+- **Meetup & QR / Confirm Receipt / Confirm Handover** is shown only when isHandoverReady is true.
+- **Invoice** is shown only after payment (or completion).
+- A paid order with no confirmed meetup is displayed as **Paid · Awaiting Meetup**.
+- A confirmed meetup with no payment is displayed as **Meetup Confirmed · Payment Required**.
+- A paid + confirmed order is displayed as **Ready for Handover**.
+
+---
+
 # Tech Stack
 
 | Layer | Technology |
@@ -605,7 +649,7 @@ pnpm build:all
 | Authentication / Mobile Services | Firebase |
 | Email | Resend |
 | Object Storage | Cloudflare R2 |
-| Deployment | Render |
+| Deployment | Cloudflare Workers (web) + Render (API) |
 | Package Management | pnpm |
 | Source Control / CI | GitHub / GitHub Actions |
 
@@ -842,3 +886,12 @@ Chrome (web) • chrome
 ## KiwiShare
 
 Building a safer and more convenient second-hand marketplace across mobile and web.
+
+
+---
+
+## License
+
+KiwiShare is source-available. You may inspect and study the source and contribute to the official project, but reuse, redistribution, deployment, derivative products, and commercial use require prior written permission from the applicable copyright holder(s).
+
+See [LICENSE](./LICENSE) for the complete terms.
