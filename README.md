@@ -594,6 +594,34 @@ pnpm server:test
 
 ---
 
+# Email Notification Safety & Delivery
+
+KiwiShare sends transactional email from the backend. Tests must be able to exercise the same business routes without contacting real email providers.
+
+| Email type | Trigger | Primary provider | Fallback |
+|---|---|---|---|
+| Account verification OTP | Registration / email verification | Resend | SMTP |
+| Student verification OTP | Student email verification | Resend | None |
+| Admin listing notification | Reassign, revoke, reactivate, or delete a listing | Resend | SMTP |
+| Watchlist price alert | Watched item price drops or becomes free | Resend | SMTP |
+| Report confirmation | Member submits a report | Resend | None |
+
+## Delivery rules by environment
+
+- **Production:** outbound delivery is enabled when provider credentials are configured.
+- **Development:** current provider behavior remains enabled, and DISABLE_OUTBOUND_EMAIL=true can suppress delivery.
+- **Test / Jest:** real outbound email is blocked by default even if server/.env contains valid Resend or SMTP credentials.
+- Provider-level unit tests may set ALLOW_TEST_EMAIL_DELIVERY=true only when the provider itself is mocked. Integration tests must not set this flag.
+- server/test/setupEnv.ts clears Resend and SMTP credentials as defense in depth. The runtime guard is still authoritative because dotenv/config can otherwise reload local .env values later.
+
+The regression that motivated this policy came from the admin reassignment integration test. It creates a fixture named Item to Reassign; before this guard, running that test could deliver a real Ownership update email to the admin mailbox.
+
+The central guard is server/src/services/emailSafety.ts. Any new Resend or SMTP path must call isOutboundEmailDeliveryEnabled() before creating or invoking a real transport. Do not rely only on missing credentials to make tests safe.
+
+DISABLE_OUTBOUND_EMAIL=true is the operational kill switch for email delivery without disabling the business action that triggered the notification.
+
+---
+
 # Static Analysis
 
 Run all project checks:
