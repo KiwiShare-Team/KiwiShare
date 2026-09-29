@@ -1,8 +1,33 @@
-# KiwiShare
+<p align="center">
+  <img src="web/public/kiwi-mark.png" width="104" alt="KiwiShare logo" />
+</p>
 
-**Team Five Guys · COMPSCI 734 · University of Auckland**
+<h1 align="center">KiwiShare</h1>
 
-KiwiShare is a cross-platform second-hand marketplace built for COMPSCI 734.
+<p align="center">
+  <strong>Share &amp; Reuse in New Zealand</strong><br />
+  A cross-platform second-hand marketplace built for COMPSCI 734.
+</p>
+
+<p align="center">
+  <strong>Team Five Guys · COMPSCI 734 · University of Auckland</strong>
+</p>
+
+<p align="center">
+  <a href="https://kiwishare.online">Website</a> ·
+  <a href="docs/demo-guide.md">Demo Guide</a> ·
+  <a href="docs/architecture.md">Architecture</a> ·
+  <a href="docs/security-owasp.md">Security</a> ·
+  <a href="https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/releases">Releases</a> ·
+  <a href="https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/wiki">Wiki</a>
+</p>
+
+<p align="center">
+  <img src="docs/assets/readme/home-marketplace.jpg" width="23%" alt="KiwiShare marketplace home" />
+  <img src="docs/assets/readme/profile-trust.jpg" width="23%" alt="KiwiShare profile and trust score" />
+  <img src="docs/assets/readme/meetup-awaiting-payment.jpg" width="23%" alt="KiwiShare meetup and payment handover flow" />
+  <img src="docs/assets/readme/transaction-completed.jpg" width="23%" alt="KiwiShare completed transaction flow" />
+</p>
 
 The project is organised as a monorepo containing:
 
