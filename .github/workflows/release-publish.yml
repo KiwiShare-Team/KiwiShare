@@ -139,7 +139,7 @@ jobs:
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           channel: 'stable'
-          flutter-version: '3.44.8'
+          flutter-version: '3.47.5'
           cache: true
 
       - name: Install dependencies
@@ -201,53 +201,10 @@ jobs:
           name: android-production
           path: build_output/
 
-  build_ios:
-    name: Build iOS Package
-    needs: version
-    runs-on: macos-latest
-    env:
-      LANG: en_US.UTF-8
-      LC_ALL: en_US.UTF-8
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
-        with:
-          channel: 'stable'
-          flutter-version: '3.44.8'
-          cache: true
-
-      - name: Install dependencies
-        run: |
-          cd mobile
-          flutter pub get --enforce-lockfile
-
-      - name: Build iOS Application (No Codesign)
-        run: |
-          flutter config --no-enable-swift-package-manager
-          cd mobile
-          flutter build ios --release --no-codesign
-
-      - name: Package iOS App Bundle
-        run: |
-          mkdir -p build_output
-          cd mobile/build/ios/iphoneos
-          zip -r "$GITHUB_WORKSPACE/build_output/KiwiShare-iOS-${{ needs.version.outputs.new_tag }}.zip" Runner.app
-
-      - name: Upload iOS Artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: ios-package
-          path: build_output/
-
   publish_release:
     name: Publish Release & Distribute
     if: ${{ github.ref_name == 'main' }}
-    needs: [version, build_android, build_ios]
+    needs: [version, build_android]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -263,12 +220,6 @@ jobs:
           name: android-production
           path: ./release-assets
 
-      - name: Download iOS Artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: ios-package
-          path: ./release-assets
-
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
@@ -279,7 +230,6 @@ jobs:
           files: |
             ./release-assets/KiwiShare-Android-${{ needs.version.outputs.new_tag }}.apk
             ./release-assets/KiwiShare-Android-${{ needs.version.outputs.new_tag }}.aab
-            ./release-assets/KiwiShare-iOS-${{ needs.version.outputs.new_tag }}.zip
           draft: false
           prerelease: false
         env:
