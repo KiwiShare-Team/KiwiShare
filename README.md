@@ -41,31 +41,6 @@ The project is organised as a monorepo containing:
 
 ---
 
-## 🧩 Product: one marketplace loop, not disconnected features
-
-**KiwiShare closes the marketplace loop from discovery → trust → communication → payment → physical handover → reputation.**
-
-The strongest product capabilities are designed to reinforce each other rather than exist as isolated demos:
-
-| Marketplace stage | Implemented capability | Why it matters |
-|---|---|---|
-| **Discovery** | Smart search suggestions, full-screen search, personalised recommendation scoring, category/location/price filters, promoted inventory | Users can move from intent to relevant local inventory quickly. |
-| **Trust** | Trust Score, transaction-bound reviews, student verification, reporting and moderation | Trust signals are connected to verified marketplace activity rather than profile decoration. |
-| **Communication** | Item-linked text, photo and voice chat with read/unread state and push delivery | Negotiation stays inside the transaction context without requiring personal phone numbers. |
-| **Payment** | Stripe-backed Safe Pay, saved cards, wallet UI, refunds, seller-release state | Payment is part of an auditable backend lifecycle rather than a client-side success screen. |
-| **Physical handover** | Meetup negotiation, Google Maps/location context, calendar-ready meetup data, QR handover | The offline exchange becomes a verifiable digital state transition. |
-| **Retention** | Watchlist price/nearby alerts, recommendation feedback, notification history | Saved intent can bring users back when something relevant changes. |
-| **Monetisation** | KiwiGold listing boosts + VIP monthly membership | Promotion and membership are integrated into discovery instead of bolted on as a separate demo. |
-| **Cross-platform continuity** | One backend-owned order/payment/meetup/handover state across Flutter and React | Mobile and web expose the same transaction truth and next actions. |
-| **Sharing** | Public short links + native deep links + branded web fallback | Shared listings can reopen the exact product in-app, while users without the app still have a clean install/web path. |
-| **Operations** | Admin dashboard, GMV/platform-fee analytics, category controls, user/listing moderation | KiwiShare includes the operational layer required to run a marketplace, not only buyer/seller screens. |
-
-Two additional technical differentiators are easy to miss in a product demo: **direct Cloudflare R2 presigned media uploads** and **native voice messaging with backend audio validation/transcoding**.
-
-See the presentation-ready capability map and implementation caveats in [`docs/product-capabilities.md`](docs/product-capabilities.md).
-
----
-
 ## 🎯 Coursework Evaluation Quick Links
 
 - **🚀 Assessor 3-Minute Live Demo Guide**: [`docs/demo-guide.md`](docs/demo-guide.md)
@@ -155,7 +130,13 @@ KiwiShare deliberately goes beyond the baseline mobile/web CRUD patterns covered
    - `standard-version` and Conventional Commits are used to derive versions/changelogs and publish reproducible GitHub release artifacts.
    - **Why it matters:** deployment and release engineering became part of the implementation itself, reducing reliance on one developer's local machine and making the final system reproducible for assessors.
 
-Together, these features demonstrate independent learning across **native mobile APIs, mapping, AI integration, cloud object storage, payment systems, media processing, distributed notifications and CI/CD**. More importantly, each technology was selected to address a specific KiwiShare product or engineering requirement and is connected to a working user flow.
+9. **Native product deep links with branded web fallback**
+   - Registered the `kiwishare://` URL scheme on iOS and Android so a shared product can reopen the installed app directly at `/items/:itemId`.
+   - Added public short links at `kiwishare.online/s/:itemId` that attempt the native deep link first, then present KiwiShare branding, app-install options and **Continue on web** when the app is unavailable.
+   - Kept external sharing on a stable HTTPS URL instead of exposing an app-only scheme, so social platforms and users without KiwiShare still receive a usable destination.
+   - **Why it matters:** this required coordinating mobile platform URL handling, React routing and fallback UX across installed and non-installed states rather than treating sharing as a plain copied URL.
+
+Together, these features demonstrate independent learning across **native mobile APIs, mapping, AI integration, cloud object storage, payment systems, media processing, distributed notifications, deep linking and CI/CD**. More importantly, each technology was selected to address a specific KiwiShare product or engineering requirement and is connected to a working user flow.
 
 ---
 
