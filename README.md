@@ -41,12 +41,38 @@ The project is organised as a monorepo containing:
 
 ---
 
+## 🧩 Product: one marketplace loop, not disconnected features
+
+**KiwiShare closes the marketplace loop from discovery → trust → communication → payment → physical handover → reputation.**
+
+The strongest product capabilities are designed to reinforce each other rather than exist as isolated demos:
+
+| Marketplace stage | Implemented capability | Why it matters |
+|---|---|---|
+| **Discovery** | Smart search suggestions, full-screen search, personalised recommendation scoring, category/location/price filters, promoted inventory | Users can move from intent to relevant local inventory quickly. |
+| **Trust** | Trust Score, transaction-bound reviews, student verification, reporting and moderation | Trust signals are connected to verified marketplace activity rather than profile decoration. |
+| **Communication** | Item-linked text, photo and voice chat with read/unread state and push delivery | Negotiation stays inside the transaction context without requiring personal phone numbers. |
+| **Payment** | Stripe-backed Safe Pay, saved cards, wallet UI, refunds, seller-release state | Payment is part of an auditable backend lifecycle rather than a client-side success screen. |
+| **Physical handover** | Meetup negotiation, Google Maps/location context, calendar-ready meetup data, QR handover | The offline exchange becomes a verifiable digital state transition. |
+| **Retention** | Watchlist price/nearby alerts, recommendation feedback, notification history | Saved intent can bring users back when something relevant changes. |
+| **Monetisation** | KiwiGold listing boosts + VIP monthly membership | Promotion and membership are integrated into discovery instead of bolted on as a separate demo. |
+| **Cross-platform continuity** | One backend-owned order/payment/meetup/handover state across Flutter and React | Mobile and web expose the same transaction truth and next actions. |
+| **Sharing** | Public short links + native deep links + branded web fallback | Shared listings can reopen the exact product in-app, while users without the app still have a clean install/web path. |
+| **Operations** | Admin dashboard, GMV/platform-fee analytics, category controls, user/listing moderation | KiwiShare includes the operational layer required to run a marketplace, not only buyer/seller screens. |
+
+Two additional technical differentiators are easy to miss in a product demo: **direct Cloudflare R2 presigned media uploads** and **native voice messaging with backend audio validation/transcoding**.
+
+See the presentation-ready capability map and implementation caveats in [`docs/product-capabilities.md`](docs/product-capabilities.md).
+
+---
+
 ## 🎯 Coursework Evaluation Quick Links
 
 - **🚀 Assessor 3-Minute Live Demo Guide**: [`docs/demo-guide.md`](docs/demo-guide.md)
 - **🌐 Production Web Portal**: [https://kiwishare.online](https://kiwishare.online)
 - **☁️ Production Backend API**: [https://kiwishare.onrender.com](https://kiwishare.onrender.com)
 - **📱 Android APK Releases**: [GitHub Releases](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/releases)
+- **🧩 Product Capability Map / PPT-ready Highlights**: [`docs/product-capabilities.md`](docs/product-capabilities.md)
 - **🏛️ System Architecture & Native Integrations**: [`docs/architecture.md`](docs/architecture.md)
 - **🧭 Product Requirements & User Needs**: [`docs/product-requirements/product-requirements.md`](docs/product-requirements/product-requirements.md)
 - **🧪 Testing Strategy**: [`docs/testing-strategy/testing-strategy.md`](docs/testing-strategy/testing-strategy.md) · [API performance evidence](docs/testing-evidence/api-performance-smoke.md)
@@ -749,6 +775,10 @@ The server writes proposalStatus: confirmed; clients also read legacy accepted a
 # Documentation
 
 Project documentation is kept in `docs/`.
+
+### Product capabilities
+
+[Product Capability Map](./docs/product-capabilities.md)
 
 ### Architecture
 
