@@ -47,6 +47,7 @@ The project is organised as a monorepo containing:
 - **🌐 Production Web Portal**: [https://kiwishare.online](https://kiwishare.online)
 - **☁️ Production Backend API**: [https://kiwishare.onrender.com](https://kiwishare.onrender.com)
 - **📱 Android APK Releases**: [GitHub Releases](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/releases)
+- **🧩 Product Capability Map / PPT-ready Highlights**: [`docs/product-capabilities.md`](docs/product-capabilities.md)
 - **🏛️ System Architecture & Native Integrations**: [`docs/architecture.md`](docs/architecture.md)
 - **🧭 Product Requirements & User Needs**: [`docs/product-requirements/product-requirements.md`](docs/product-requirements/product-requirements.md)
 - **🧪 Testing Strategy**: [`docs/testing-strategy/testing-strategy.md`](docs/testing-strategy/testing-strategy.md) · [API performance evidence](docs/testing-evidence/api-performance-smoke.md)
@@ -66,7 +67,7 @@ The table below is a marker-oriented evidence map. **Reasoning** explains why th
 | :---: | :--- | :--- | :--- |
 | **1** | **Integrated system — mobile, web, cloud (8%)** | KiwiShare is one shared marketplace system rather than disconnected demos: the Flutter client and React/Vite web client use the same Koa REST API and MongoDB data model. Mobile is the native buyer/seller experience; web provides browser access and administration/moderation. Payment, meetup and handover state is derived from backend state so both clients follow the same transaction rules. | [Architecture](docs/architecture.md) · [API specification](docs/api-spec.md) · [Canonical order/payment/meetup/handover state machine](#order-payment--handover-state-machine) · [Live demo guide](docs/demo-guide.md) |
 | **2** | **Mastery of chosen tools (10%)** | The project uses Flutter idiomatically through routing, providers, repositories/services and asynchronous API handling, while the backend applies typed TypeScript/Koa middleware, Mongoose schemas, geospatial indexing and MongoDB transactions. Cloud services are used for concrete architectural purposes rather than as superficial add-ons: R2 presigned uploads keep large media off the API process, Firebase supports identity/push services, and CI/CD validates the monorepo. | [Mobile source](mobile/lib/) · [Server source](server/src/) · [Architecture](docs/architecture.md) · [Workflows](.github/workflows/) |
-| **3** | **Independent learning beyond the course (6%)** | Several independently researched techniques materially improve the product: Stripe payment/webhook handling, direct Cloudflare R2 media upload, Gemini-assisted listing creation, voice capture/playback with server-side audio processing, native QR handover, push notifications and automated release/versioning. Each is integrated into a real user or operational flow rather than included only as a technology demonstration. | [Independent Learning section](#-independent-learning-technologies-applied-beyond-course-scope) · [Architecture](docs/architecture.md) · [Deployment](docs/deployment.md) |
+| **3** | **Independent learning beyond the course (6%)** | Several independently researched techniques materially improve the product: Stripe payment/webhook handling, direct Cloudflare R2 media upload, Gemini-assisted listing creation, voice capture/playback with server-side audio processing, native QR handover, push notifications, native product deep links with branded web fallback, and automated release/versioning. Each is integrated into a real user or operational flow rather than included only as a technology demonstration. | [Independent Learning section](#-independent-learning-technologies-applied-beyond-course-scope) · [Architecture](docs/architecture.md) · [Deployment](docs/deployment.md) |
 | **4** | **Genuine user need (8%)** | The product is explicitly aimed at New Zealand second-hand buyers and sellers, including students, young families and renters. Product choices trace to marketplace pain points: local discovery reduces search friction; student verification and Trust Score provide trust signals; chat supports negotiation; meetup coordination and paid + confirmed handover gating reduce unsafe or ambiguous exchanges; reporting/moderation supports marketplace safety. The project requirements document records the user stories and intended end-to-end flows. | [Product requirements](docs/product-requirements/product-requirements.md) · [Wiki meeting records](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/wiki) · [Demo guide](docs/demo-guide.md) |
 | **5** | **Mobile capabilities (10%)** | Native capabilities are central to the transaction experience, not checkbox features. Camera/gallery input creates listings and profile media; GPS/geocoding powers local discovery; QR scanning completes trusted in-person handover; microphone/audio supports voice chat; maps support location/meetup context; APNs/FCM notifications bring users back to messages and transaction updates. Multiple capabilities therefore participate directly in core marketplace journeys. | [Native mobile integrations](docs/architecture.md#3-deep-integration-of-native-mobile-capabilities) · [Mobile tests](mobile/test/) |
 | **6** | **Architecture and justification (10%)** | KiwiShare separates clients, API, persistence and supporting cloud services so components can evolve independently. REST was preferred over GraphQL because both clients need predictable resource-oriented contracts and the product does not require arbitrary nested queries. MongoDB/Mongoose fits flexible marketplace documents plus geospatial queries; direct-to-R2 presigned uploads avoid routing large media through the Koa process; and transactional MongoDB sessions protect the QR handover path. These choices also support growth by keeping API requests largely stateless, using indexes for common queries and moving media bandwidth away from the application server. The documentation records known trade-offs, such as the stronger atomicity of QR claim compared with the separate two-party confirmation path. | [Architecture](docs/architecture.md) · [API specification](docs/api-spec.md) · [Profile design decisions](docs/profile-module-decisions.md) · [Order state machine](#order-payment--handover-state-machine) |
@@ -129,7 +130,13 @@ KiwiShare deliberately goes beyond the baseline mobile/web CRUD patterns covered
    - `standard-version` and Conventional Commits are used to derive versions/changelogs and publish reproducible GitHub release artifacts.
    - **Why it matters:** deployment and release engineering became part of the implementation itself, reducing reliance on one developer's local machine and making the final system reproducible for assessors.
 
-Together, these features demonstrate independent learning across **native mobile APIs, mapping, AI integration, cloud object storage, payment systems, media processing, distributed notifications and CI/CD**. More importantly, each technology was selected to address a specific KiwiShare product or engineering requirement and is connected to a working user flow.
+9. **Native product deep links with branded web fallback**
+   - Registered the `kiwishare://` URL scheme on iOS and Android so a shared product can reopen the installed app directly at `/items/:itemId`.
+   - Added public short links at `kiwishare.online/s/:itemId` that attempt the native deep link first, then present KiwiShare branding, app-install options and **Continue on web** when the app is unavailable.
+   - Kept external sharing on a stable HTTPS URL instead of exposing an app-only scheme, so social platforms and users without KiwiShare still receive a usable destination.
+   - **Why it matters:** this required coordinating mobile platform URL handling, React routing and fallback UX across installed and non-installed states rather than treating sharing as a plain copied URL.
+
+Together, these features demonstrate independent learning across **native mobile APIs, mapping, AI integration, cloud object storage, payment systems, media processing, distributed notifications, deep linking and CI/CD**. More importantly, each technology was selected to address a specific KiwiShare product or engineering requirement and is connected to a working user flow.
 
 ---
 
@@ -749,6 +756,10 @@ The server writes proposalStatus: confirmed; clients also read legacy accepted a
 # Documentation
 
 Project documentation is kept in `docs/`.
+
+### Product capabilities
+
+[Product Capability Map](./docs/product-capabilities.md)
 
 ### Architecture
 

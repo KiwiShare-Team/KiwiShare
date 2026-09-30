@@ -675,3 +675,43 @@ JWT and never accepts a reporter ID as a query parameter.
 
 There is no public or moderator `GET /api/reports` endpoint in the MVP. A future
 moderator endpoint requires a separate authorization and privacy review.
+
+---
+
+## 8. Marketplace Discovery, Monetisation & Coordination Endpoints
+
+The product has expanded beyond the original resource list above. The following endpoint groups are particularly relevant to the current product capability map:
+
+### Discovery and recommendation
+
+- `GET /api/usedItems/search-suggestions` — server-backed search-as-you-type suggestions over active marketplace data.
+- `GET /api/usedItems/recommended` — weighted recommendation ranking using watchlist affinity, proximity, engagement, freshness, sustainability and condition.
+- `GET /api/usedItems/featured` — featured/promoted listing surface.
+- `POST /api/usedItems/:id/promote` — owner-only listing promotion using KiwiGold, with VIP promotion rules applied server-side.
+
+### Payment, wallet and membership
+
+- `GET /api/config/fees` — platform fee configuration.
+- `POST /api/payments/create-intent` / `POST /api/payments/confirm` — Stripe-backed order payment creation and verification.
+- `GET /api/payments/cards`, `POST /api/payments/payment-methods`, `POST /api/payments/cards`, `DELETE /api/payments/cards/:id` — saved-card/payment-method management.
+- `POST /api/payments/topup/create-intent` / `POST /api/payments/topup/confirm` — KiwiGold or VIP purchase flow.
+- `POST /api/payments/vip/cancel-renewal` / `POST /api/payments/vip/resume-renewal` — VIP renewal controls.
+
+Payment state is authoritative on the backend. Product documentation describes the current hold/release behavior as an **escrow-style application workflow**; these endpoints do not by themselves establish KiwiShare as a regulated escrow provider.
+
+### Notification preferences
+
+- `GET /api/notifications/preferences` — returns notification preferences including watchlist price-change and nearby-category alerts.
+- `PATCH /api/notifications/preferences` — updates supported notification preferences.
+
+Marketplace events can be delivered through notification history, native push and email depending on event type, user preference and configured delivery providers.
+
+### Meetup and physical handover
+
+- `POST /api/meetups/propose` — propose or reschedule a meetup.
+- `POST /api/meetups/:orderId/accept` / `POST /api/meetups/:orderId/decline` — negotiate meetup status.
+- `GET /api/meetups/my` / `GET /api/meetups/:orderId` — retrieve meetup/order coordination state.
+- `POST /api/meetups/:orderId/confirm-handover` — bilateral handover confirmation path.
+- `POST /api/transactions/handover/claim` — QR-based authenticated handover claim path.
+
+Both clients must use server-derived payment, meetup and handover readiness rather than inventing independent client-side state transitions.

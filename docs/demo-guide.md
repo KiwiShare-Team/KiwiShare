@@ -79,9 +79,36 @@ The production database is pre-populated with realistic New Zealand community li
 
 ---
 
+### Scenario D: Smart Discovery, Recommendations & Share Handoff
+
+1. On mobile, tap the home search field to enter the dedicated full-screen marketplace search.
+2. Type a partial phrase and observe server-backed search-as-you-type suggestions across active marketplace data.
+3. Return to Home and compare the recommendation feed: ranking incorporates watchlist affinity, location proximity, engagement, freshness, sustainability and item condition.
+4. Open a listing and share/copy its public `/s/:itemId` link. On a mobile browser the branded landing page attempts the `kiwishare:///items/:itemId` deep link; without the app it exposes install options and **Continue on web**.
+5. In the publish flow, demonstrate AI-assisted listing content from seller context/images and confirm that the seller reviews the generated suggestion before publishing.
+
+> **Accuracy note:** the current search autocomplete is deterministic/server-backed. The mobile app contains a Remote Config flag for an AI/semantic-search experiment, but the current suggestion endpoint itself is not model-generated.
+
+---
+
+### Scenario E: Safe Pay → Meetup → Verified Handover
+
+1. Open an active buyer/seller order on mobile or web.
+2. Demonstrate that payment and meetup agreement can occur in either order while the backend keeps a single authoritative transaction state.
+3. Complete a Stripe-backed Safe Pay step or use a seeded paid order, then inspect the saved-card/wallet and order-detail state.
+4. Confirm the meetup and verify that the handover action/QR unlocks only when both payment and meetup requirements are satisfied.
+5. Complete handover and observe the connected effects: order completion, ownership transfer, seller-release state, Trust Score credit and review eligibility.
+
+> **Payment wording:** KiwiShare implements an escrow-style application state and seller-release workflow around Stripe payment verification. It should not be presented as a regulated escrow institution or as proof of a segregated escrow account.
+
+---
+
 ## 4. Architectural Key Highlights for Evaluators
 
 - **Decoupled Architecture**: Koa RESTful API + MongoDB Atlas + React Web + Flutter Multiplatform.
 - **Atomic Operations**: Critical handover transfers execute within `runMongoTransaction` sessions to prevent race conditions.
-- **Cloud-Native Edge Storage**: Cloudflare R2 S3-compatible bucket eliminates binary upload load on the application server.
+- **Cloud-Native Edge Storage**: Cloudflare R2 S3-compatible presigned uploads keep large listing/chat media off the application server data path.
+- **Marketplace Feedback Loops**: Watchlists influence recommendation ranking and notifications; completed transactions influence reputation; KiwiGold/VIP promotion influences featured discovery.
+- **Cross-Platform Transaction Source of Truth**: Flutter and React consume the same server-derived payment/meetup/handover readiness instead of implementing separate client rules.
+- **Native-to-Web Share Handoff**: `/s/:itemId` provides an external share surface that can reopen an installed app through `kiwishare://` or fall back to install/web continuation.
 - **Automated CI/CD**: Web changes merged to `pre` build and deploy the React portal to Cloudflare Workers when the deployment token is configured; merges to `main` trigger Semantic Versioning tags, Android APK generation, Firebase distribution, and the independent Render backend release flow.
