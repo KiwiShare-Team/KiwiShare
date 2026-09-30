@@ -77,31 +77,59 @@ The table below is a marker-oriented evidence map. **Reasoning** explains why th
 | **11** | **Deployment (8%)** | The system has realistic reachable deployment paths: the React/Vite client is hosted behind Cloudflare Workers at `kiwishare.online`, the Koa API is deployed on Render, R2 stores media and MongoDB Atlas persists application data. Android production artifacts are published through GitHub Releases, while the repository documents setup/build/run procedures so markers can reproduce or use the system without relying on one developer's machine. | [Deployment guide](docs/deployment.md) · [Production web](https://kiwishare.online) · [Production API](https://kiwishare.onrender.com) · [Android releases](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/releases) · [Demo guide](docs/demo-guide.md) |
 | **12** | **Communicating decisions — README and Wiki (6%)** | Project decisions are recorded in the repository instead of remaining only in chat. README provides setup, development, testing, production build and state-machine guidance; architecture/API/security/testing/deployment documents explain major technical areas; the Wiki records recurring team decisions and action items; PR descriptions preserve implementation rationale, verification and related issues. This creates an auditable trail from requirement/decision to implementation and test evidence. | [README](README.md) · [Documentation index](docs/) · [Wiki](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/wiki) · [Pull requests](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/pulls) · [CHANGELOG](CHANGELOG.md) |
 
-> **Assessment rule reminder:** if implementation or evidence is not in the repository, GitHub Project/Issues/PRs, or Wiki, markers cannot assess it. Before submission, all markable implementation must be promoted to `main` and the marker-facing links above should resolve without team assistance.
-
 ---
 
 ## 🚀 Independent Learning: Technologies Applied Beyond Course Scope
 
-To elevate KiwiShare beyond standard coursework expectations, the team researched, benchmarked, and implemented several advanced technologies:
+KiwiShare deliberately goes beyond the baseline mobile/web CRUD patterns covered in the course. The team independently researched technologies that solve concrete marketplace problems, then integrated them into end-to-end user flows rather than treating them as isolated demos.
 
-1. **Hardware Voice Messaging & Server-Side Audio Transcoding**:
-   - Integrated hardware microphone capture (`record`) and real-time audio playback (`just_audio`) within chat threads.
-   - Deployed a statically bundled `ffmpeg-static` worker on the Koa backend to validate, clean, and transcode raw client voice memos before distribution.
-2. **High-Throughput Cloudflare R2 S3-Presigned Architecture**:
-   - Rather than streaming large binary photos through the Node.js API process (which risks memory bloat), the backend generates time-limited S3 presigned PUT URLs, enabling clients to upload media directly to edge storage.
-3. **Cryptographic In-Person QR Handover Protocol**:
-   - Designed an in-person exchange system using cryptographically hashed single-use tokens (`qr_flutter` display + `mobile_scanner` real-time camera recognition) executed in atomic MongoDB sessions to eliminate ghosting and delivery disputes.
-4. **Server-Side AI Listing Assistant (Google Gemini)**:
-   - Integrated Google Gemini (`gemini-3.5-flash-lite`) via backend service APIs to generate intelligent descriptions, condition tags, and sustainability badges from raw user titles.
-5. **Vector OpenStreetMap Native Mapping**:
-   - Implemented `flutter_map` and `latlong2` vector tiling as a privacy-friendly, open-source alternative to proprietary map SDKs.
-6. **Automated Monorepo Release & Versioning Pipeline**:
-   - Built a custom GitHub Actions CD pipeline utilizing `standard-version` and Conventional Commits to automatically calculate semantic versions, publish changelogs, tag Git commits, and build cross-platform binaries on merges to `main`.
-7. **Stripe Escrow Payments & New Zealand IRD 15% GST Compliance Engine**:
-   - Researched, architected, and deployed a production-grade escrow payment system using Stripe Hosted Checkout, real-time webhooks with HMAC-SHA256 signature verification (`stripe.webhooks.constructEvent`), and atomic escrow holds.
-   - Built a compliant New Zealand tax calculation engine aligned with Inland Revenue Department (IRD) regulations: computes 15% Goods and Services Tax (GST) strictly on the KiwiShare platform service fee while recognizing second-hand peer-to-peer item transactions between private individuals as tax-exempt under the NZ GST Act 1985.
-   - Integrated end-to-end payment flows across mobile and web with item state synchronization, deep link redirection, automated seller payout releases upon QR verification, and 48-hour unmet refund claim protection.
+1. **Native Google Maps, geolocation and geocoding**
+   - Integrated `google_maps_flutter` with native Google Maps views in the marketplace home map, listing-location sheet and meetup/chat experience.
+   - Combined device location (`geolocator`) and geocoding with product/location data so users can discover nearby items and understand where an exchange will happen.
+   - Added hand-off to the installed Google Maps app for driving directions where appropriate.
+   - **Why it matters:** location is part of the marketplace workflow itself—discovery, listing context and meetup coordination—not just a decorative map.
+
+2. **Server-side AI listing assistant with Google Gemini**
+   - Integrated Google Gemini (`gemini-3.5-flash-lite`) behind the Koa API rather than exposing model credentials in the client.
+   - The listing-assistance flow can use user-entered context and listing images to suggest structured listing content such as titles/descriptions, condition/category hints and sustainability-oriented copy.
+   - Added request validation, image-aware request handling and model fallback behavior so the feature degrades more predictably when model/API conditions change.
+   - **Why it matters:** AI reduces the effort needed to create a useful listing while keeping model access, validation and error handling under server control.
+
+3. **Direct-to-Cloudflare R2 media uploads with S3 presigned URLs**
+   - Researched the S3-compatible presigned-upload pattern and implemented time-limited upload URLs for Cloudflare R2.
+   - Clients upload large media directly to object storage instead of proxying every binary payload through the Node/Koa application process.
+   - **Why it matters:** this reduces API memory/bandwidth pressure, separates media delivery from application compute and provides a more scalable upload path.
+
+4. **Cryptographic QR-based in-person handover**
+   - Built a real-world exchange flow using generated single-use QR credentials and `mobile_scanner` camera recognition.
+   - Sensitive handover tokens are not stored as reusable plaintext credentials, and the QR claim path is protected by transactional backend state changes.
+   - Payment, meetup confirmation and handover state are linked so the QR code only becomes meaningful at the correct stage of the transaction.
+   - **Why it matters:** the feature turns an offline meetup into a verifiable digital state transition and reduces ambiguity about whether an item was actually handed over.
+
+5. **Hardware voice messaging with backend audio processing**
+   - Integrated device microphone capture with `record` and in-app playback with `just_audio`.
+   - Added server-side validation/transcoding using `ffmpeg-static` so voice messages from different devices can be normalised before distribution.
+   - **Why it matters:** this required coordinating native permissions, binary media upload, backend processing and playback across the messaging flow.
+
+6. **Stripe-backed payment lifecycle, refunds and seller-release workflow**
+   - Integrated Stripe PaymentIntents, saved payment-method handling and server-side payment verification rather than trusting client-reported payment state.
+   - Added refund handling and a deferred seller-release model tied to order/handover state, with application-side audit/payment records.
+   - Implemented NZ-oriented platform-fee/GST calculations as part of the marketplace fee model.
+   - **Why it matters:** payment is treated as a stateful backend workflow with verification, failure/retry handling and reconciliation concerns—not as a single “pay” button.
+   - The current tax/fee logic is an application implementation for the project and should not be interpreted as legal or accounting advice.
+
+7. **Firebase-backed identity, push notifications and remote configuration**
+   - Integrated Firebase services across the mobile experience for authenticated identity flows, push messaging and remotely configurable application behavior.
+   - Notification handling connects backend marketplace events to device-level FCM/APNs delivery.
+   - **Why it matters:** this extends the app beyond foreground REST requests and required learning mobile platform configuration, tokens, permissions and asynchronous delivery behavior.
+
+8. **Automated monorepo CI/CD, signed Android releases and semantic versioning**
+   - Built GitHub Actions pipelines spanning backend, web and Flutter validation, plus production release automation.
+   - Production Android builds use a dedicated release keystore supplied through CI secrets and verify generated APK/AAB signatures before publication.
+   - `standard-version` and Conventional Commits are used to derive versions/changelogs and publish reproducible GitHub release artifacts.
+   - **Why it matters:** deployment and release engineering became part of the implementation itself, reducing reliance on one developer's local machine and making the final system reproducible for assessors.
+
+Together, these features demonstrate independent learning across **native mobile APIs, mapping, AI integration, cloud object storage, payment systems, media processing, distributed notifications and CI/CD**. More importantly, each technology was selected to address a specific KiwiShare product or engineering requirement and is connected to a working user flow.
 
 ---
 
@@ -563,6 +591,34 @@ pnpm mobile:test
 ```bash
 pnpm server:test
 ```
+
+---
+
+# Email Notification Safety & Delivery
+
+KiwiShare sends transactional email from the backend. Tests must be able to exercise the same business routes without contacting real email providers.
+
+| Email type | Trigger | Primary provider | Fallback |
+|---|---|---|---|
+| Account verification OTP | Registration / email verification | Resend | SMTP |
+| Student verification OTP | Student email verification | Resend | None |
+| Admin listing notification | Reassign, revoke, reactivate, or delete a listing | Resend | SMTP |
+| Watchlist price alert | Watched item price drops or becomes free | Resend | SMTP |
+| Report confirmation | Member submits a report | Resend | None |
+
+## Delivery rules by environment
+
+- **Production:** outbound delivery is enabled when provider credentials are configured.
+- **Development:** current provider behavior remains enabled, and DISABLE_OUTBOUND_EMAIL=true can suppress delivery.
+- **Test / Jest:** real outbound email is blocked by default even if server/.env contains valid Resend or SMTP credentials.
+- Provider-level unit tests may set ALLOW_TEST_EMAIL_DELIVERY=true only when the provider itself is mocked. Integration tests must not set this flag.
+- server/test/setupEnv.ts clears Resend and SMTP credentials as defense in depth. The runtime guard is still authoritative because dotenv/config can otherwise reload local .env values later.
+
+The regression that motivated this policy came from the admin reassignment integration test. It creates a fixture named Item to Reassign; before this guard, running that test could deliver a real Ownership update email to the admin mailbox.
+
+The central guard is server/src/services/emailSafety.ts. Any new Resend or SMTP path must call isOutboundEmailDeliveryEnabled() before creating or invoking a real transport. Do not rely only on missing credentials to make tests safe.
+
+DISABLE_OUTBOUND_EMAIL=true is the operational kill switch for email delivery without disabling the business action that triggered the notification.
 
 ---
 
