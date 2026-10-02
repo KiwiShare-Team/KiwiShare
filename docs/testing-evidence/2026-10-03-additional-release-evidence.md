@@ -119,3 +119,12 @@ Android dark-mode screenshots:
 - [`ks-t-061-dark-watchlist-error-android.png`](./screenshots/2026-10-03/ks-t-061-dark-watchlist-error-android.png)
 
 Privacy-sensitive email addresses are redacted in repository screenshots. One-time OTP values are retained as test evidence.
+
+## Device matrix supplied by the team
+
+- Jenny: iPhone 17
+- Jack: iPhone 16 Pro, iOS 26.6.2
+- Luna: iPhone 15
+- Sam: iPhone, model not recorded
+- Rui: iPhone, model not recorded
+- Jaeger: Samsung Android phone, model and Android version not recorded
