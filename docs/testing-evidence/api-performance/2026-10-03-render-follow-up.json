@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "measuredAt": "2026-10-02T21:47:19.454Z",
+  "target": "https://kiwishare.onrender.com",
+  "environment": {
+    "node": "v26.5.0",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "cpuModel": "Apple M5 Pro",
+    "logicalCpus": 15
+  },
+  "configuration": {
+    "requests": 80,
+    "concurrency": 4,
+    "warmupRequests": 8,
+    "timeoutMs": 10000,
+    "requestMix": [
+      {
+        "name": "health",
+        "path": "/health",
+        "weight": 10
+      },
+      {
+        "name": "listing",
+        "path": "/api/usedItems?limit=12",
+        "weight": 40
+      },
+      {
+        "name": "discovery-options",
+        "path": "/api/usedItems/discovery-options",
+        "weight": 30
+      },
+      {
+        "name": "categories",
+        "path": "/api/categories",
+        "weight": 20
+      }
+    ]
+  },
+  "thresholds": {
+    "maxP95Ms": 1500,
+    "maxErrorRate": 0.01
+  },
+  "result": {
+    "durationSeconds": 15.068,
+    "throughputRequestsPerSecond": 5.31,
+    "overall": {
+      "requests": 80,
+      "successes": 80,
+      "failures": 0,
+      "errorRate": 0,
+      "latencyMs": {
+        "min": 207.06,
+        "p50": 620.01,
+        "p95": 1407.51,
+        "p99": 1687.87,
+        "max": 1687.87
+      }
+    },
+    "endpoints": {
+      "health": {
+        "path": "/health",
+        "weight": 10,
+        "requests": 8,
+        "successes": 8,
+        "failures": 0,
+        "errorRate": 0,
+        "latencyMs": {
+          "min": 207.06,
+          "p50": 207.96,
+          "p95": 686.76,
+          "p99": 686.76,
+          "max": 686.76
+        }
+      },
+      "listing": {
+        "path": "/api/usedItems?limit=12",
+        "weight": 40,
+        "requests": 32,
+        "successes": 32,
+        "failures": 0,
+        "errorRate": 0,
+        "latencyMs": {
+          "min": 560.77,
+          "p50": 979,
+          "p95": 1610.93,
+          "p99": 1687.87,
+          "max": 1687.87
+        }
+      },
+      "discovery-options": {
+        "path": "/api/usedItems/discovery-options",
+        "weight": 30,
+        "requests": 24,
+        "successes": 24,
+        "failures": 0,
+        "errorRate": 0,
+        "latencyMs": {
+          "min": 538.77,
+          "p50": 587.38,
+          "p95": 988.84,
+          "p99": 1029.49,
+          "max": 1029.49
+        }
+      },
+      "categories": {
+        "path": "/api/categories",
+        "weight": 20,
+        "requests": 16,
+        "successes": 16,
+        "failures": 0,
+        "errorRate": 0,
+        "latencyMs": {
+          "min": 536.02,
+          "p50": 544.41,
+          "p95": 620.01,
+          "p99": 620.01,
+          "max": 620.01
+        }
+      }
+    },
+    "failures": []
+  },
+  "checks": {
+    "p95Latency": {
+      "actualMs": 1407.51,
+      "maximumMs": 1500,
+      "passed": true
+    },
+    "errorRate": {
+      "actual": 0,
+      "maximum": 0.01,
+      "passed": true
+    }
+  },
+  "passed": true
+}
