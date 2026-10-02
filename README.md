@@ -23,10 +23,14 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/readme/home-marketplace.jpg" width="23%" alt="KiwiShare marketplace home" />
-  <img src="docs/assets/readme/profile-trust.jpg" width="23%" alt="KiwiShare profile and trust score" />
-  <img src="docs/assets/readme/meetup-awaiting-payment.jpg" width="23%" alt="KiwiShare meetup and payment handover flow" />
-  <img src="docs/assets/readme/transaction-completed.jpg" width="23%" alt="KiwiShare completed transaction flow" />
+  <img src="docs/assets/readme/home-marketplace.jpg" width="30%" alt="KiwiShare marketplace home" />
+  <img src="docs/assets/readme/profile-trust.jpg" width="30%" alt="KiwiShare profile and trust score" />
+  <img src="docs/assets/readme/showcase-05.jpg" width="30%" alt="KiwiShare product experience showcase" />
+</p>
+<p align="center">
+  <img src="docs/assets/readme/meetup-awaiting-payment.jpg" width="30%" alt="KiwiShare meetup and payment handover flow" />
+  <img src="docs/assets/readme/transaction-completed.jpg" width="30%" alt="KiwiShare completed transaction flow" />
+  <img src="docs/assets/readme/showcase-06.jpg" width="30%" alt="KiwiShare product experience showcase" />
 </p>
 
 The project is organised as a monorepo containing:
