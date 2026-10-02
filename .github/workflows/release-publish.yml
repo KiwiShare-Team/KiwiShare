@@ -55,57 +55,63 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: '22.23.2'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-        with:
-          version: 9.15.9
-
-      - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Bump Version and Generate Changelog
+      - name: Calculate unique release version and changelog
         id: bump_version
+        shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          set -euo pipefail
 
-          git fetch --tags origin
+          # Release tags are the source of truth. package.json can lag behind
+          # because the release workflow must not mutate main after a merge.
+          git fetch --force --tags origin
 
-          # Check if the version in package.json already has a remote tag
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          PKG_TAG="v$PKG_VERSION"
-          REMOTE_TAG_EXISTS=$(git ls-remote --tags origin "refs/tags/$PKG_TAG" | wc -l)
+          # A rerun for the same commit may reuse only the tag that already
+          # points at this exact SHA. A different commit must get a new tag.
+          EXISTING_TAG=$(git tag --points-at "$GITHUB_SHA" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
 
-          if [ "$REMOTE_TAG_EXISTS" -eq "0" ]; then
-            echo "Version $PKG_VERSION in package.json is not tagged yet. Using $PKG_TAG."
-            NEW_VERSION="$PKG_VERSION"
-            NEW_TAG="$PKG_TAG"
+          if [ -n "$EXISTING_TAG" ]; then
+            NEW_TAG="$EXISTING_TAG"
+            NEW_VERSION="${NEW_TAG#v}"
+            echo "Commit $GITHUB_SHA is already tagged as $NEW_TAG; treating this as a same-SHA rerun."
           else
-            echo "Version $PKG_VERSION is already tagged. Calculating next version..."
-            if [ "${{ github.ref_name }}" = "pre" ]; then
-              pnpm exec standard-version --prerelease pre --skip.commit --skip.tag
+            LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)
+
+            if [ -z "$LATEST_TAG" ]; then
+              NEW_VERSION="0.1.0"
             else
-              pnpm exec standard-version --skip.commit --skip.tag
+              LATEST_VERSION="${LATEST_TAG#v}"
+              IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_VERSION"
+              NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
             fi
-            NEW_VERSION=$(node -p "require('./package.json').version")
+
             NEW_TAG="v$NEW_VERSION"
+
+            # A new commit must never publish into an existing tag/release.
+            if git ls-remote --exit-code --tags origin "refs/tags/$NEW_TAG" >/dev/null 2>&1; then
+              echo "::error::Refusing to reuse existing release tag $NEW_TAG for commit $GITHUB_SHA."
+              exit 1
+            fi
           fi
 
-          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "new_tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
-          node -e '
-            const fs = require("fs");
-            const content = fs.existsSync("CHANGELOG.md") ? fs.readFileSync("CHANGELOG.md", "utf8") : "";
-            const match = content.match(/## \[?[\d\w\.-]+\]?[\s\S]*?(?=\n## \[?[\d\w\.-]+\]?|$)/);
-            const notes = match ? match[0].trim() : "See CHANGELOG.md for details.";
-            fs.appendFileSync(process.env.GITHUB_OUTPUT, `changelog<<EOF\n${notes}\nEOF\n`);
-          '
+          PREVIOUS_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -Fxv "$NEW_TAG" | head -n 1 || true)
+          if [ -n "$PREVIOUS_TAG" ]; then
+            NOTES=$(git log --no-merges --pretty=format:'- %s (%h)' "$PREVIOUS_TAG..$GITHUB_SHA")
+          else
+            NOTES=$(git log --no-merges --pretty=format:'- %s (%h)' "$GITHUB_SHA")
+          fi
+
+          if [ -z "$NOTES" ]; then
+            NOTES="Release $NEW_TAG from $GITHUB_SHA."
+          fi
+
+          {
+            echo 'changelog<<EOF'
+            echo "$NOTES"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
   build_android:
     name: Build Production Android APK & AAB
@@ -234,6 +240,27 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify published tag matches this build
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.version.outputs.new_tag }}
+        run: |
+          set -euo pipefail
+          TAG_TYPE=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${RELEASE_TAG}" --jq '.object.type')
+          TAG_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${RELEASE_TAG}" --jq '.object.sha')
+
+          if [ "$TAG_TYPE" = "tag" ]; then
+            TAG_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/git/tags/${TAG_SHA}" --jq '.object.sha')
+          fi
+
+          if [ "$TAG_SHA" != "$GITHUB_SHA" ]; then
+            echo "::error::Release tag $RELEASE_TAG points to $TAG_SHA, but this build came from $GITHUB_SHA."
+            exit 1
+          fi
+
+          echo "Verified $RELEASE_TAG -> $GITHUB_SHA."
 
       - name: Upload to Firebase App Distribution
         if: ${{ env.FIREBASE_TOKEN != '' && env.FIREBASE_APP_ID != '' }}
