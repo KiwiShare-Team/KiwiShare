@@ -31,11 +31,12 @@
 
 The project is organised as a monorepo containing:
 
-- **Flutter client** — mobile and browser-based Flutter application
-- **React web client** — separate Vite/React web application
-- **Koa backend** — Node.js + TypeScript REST API
-- **MongoDB Atlas** — application data storage
-- **Firebase** — authentication and supporting mobile services
+- **Flutter client** — native iOS/Android marketplace app; Chrome is also supported for fast development and regression work
+- **React web client** — Vite/React browser application used for web marketplace and administration flows
+- **Koa backend** — Node.js + TypeScript REST API and transaction/business-state source of truth
+- **MongoDB Atlas** — persistent marketplace, identity, chat, order and reputation data
+- **Cloudflare R2** — direct-to-object-storage media uploads through server-issued presigned URLs
+- **Firebase** — Google identity integration, FCM/APNs push delivery and mobile remote configuration
 - **Cloudflare Workers** — production React/Vite web hosting at `kiwishare.online`
 - **Render** — deployed Koa backend API environment
 
@@ -50,7 +51,7 @@ The project is organised as a monorepo containing:
 - **🧩 Product Capability Map / PPT-ready Highlights**: [`docs/product-capabilities.md`](docs/product-capabilities.md)
 - **🏛️ System Architecture & Native Integrations**: [`docs/architecture.md`](docs/architecture.md)
 - **🧭 Product Requirements & User Needs**: [`docs/product-requirements/product-requirements.md`](docs/product-requirements/product-requirements.md)
-- **🧪 Testing Strategy**: [`docs/testing-strategy/testing-strategy.md`](docs/testing-strategy/testing-strategy.md) · [API performance evidence](docs/testing-evidence/api-performance-smoke.md)
+- **🧪 Testing & Release Evidence**: [Testing strategy](docs/testing-strategy/testing-strategy.md) · [Release/UAT workbook](docs/testing-strategy/kiwishare-release-test-results-v0.2.xlsx) · [API performance evidence](docs/testing-evidence/api-performance-smoke.md)
 - **🔒 Cybersecurity & OWASP Analysis**: [`docs/security-owasp.md`](docs/security-owasp.md)
 - **📋 GitHub Issues / Task History**: [Issues](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues)
 - **🔀 Pull Requests / Reviews**: [Pull requests](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/pulls)
@@ -61,7 +62,7 @@ The project is organised as a monorepo containing:
 
 ## 📋 COMPSCI 734 Rubric Alignment & Reasoning
 
-The table below is a marker-oriented evidence map. **Reasoning** explains why the implementation evidence is relevant to the criterion rather than only listing technologies. Repository statistics in this table are a snapshot as of **29 September 2026**; the linked GitHub records remain the source of truth.
+The table below is a marker-oriented evidence map. **Reasoning** explains why the implementation evidence is relevant to the criterion rather than only listing technologies. GitHub Issues, Pull Requests, Actions and Wiki records are the live source of truth for project history; the README deliberately avoids hard-coded issue/PR totals that become stale during final freeze work.
 
 | # | Criterion (weight) | Reasoning | Primary evidence |
 | :---: | :--- | :--- | :--- |
@@ -71,10 +72,10 @@ The table below is a marker-oriented evidence map. **Reasoning** explains why th
 | **4** | **Genuine user need (8%)** | The product is explicitly aimed at New Zealand second-hand buyers and sellers, including students, young families and renters. Product choices trace to marketplace pain points: local discovery reduces search friction; student verification and Trust Score provide trust signals; chat supports negotiation; meetup coordination and paid + confirmed handover gating reduce unsafe or ambiguous exchanges; reporting/moderation supports marketplace safety. The project requirements document records the user stories and intended end-to-end flows. | [Product requirements](docs/product-requirements/product-requirements.md) · [Wiki meeting records](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/wiki) · [Demo guide](docs/demo-guide.md) |
 | **5** | **Mobile capabilities (10%)** | Native capabilities are central to the transaction experience, not checkbox features. Camera/gallery input creates listings and profile media; GPS/geocoding powers local discovery; QR scanning completes trusted in-person handover; microphone/audio supports voice chat; maps support location/meetup context; APNs/FCM notifications bring users back to messages and transaction updates. Multiple capabilities therefore participate directly in core marketplace journeys. | [Native mobile integrations](docs/architecture.md#3-deep-integration-of-native-mobile-capabilities) · [Mobile tests](mobile/test/) |
 | **6** | **Architecture and justification (10%)** | KiwiShare separates clients, API, persistence and supporting cloud services so components can evolve independently. REST was preferred over GraphQL because both clients need predictable resource-oriented contracts and the product does not require arbitrary nested queries. MongoDB/Mongoose fits flexible marketplace documents plus geospatial queries; direct-to-R2 presigned uploads avoid routing large media through the Koa process; and transactional MongoDB sessions protect the QR handover path. These choices also support growth by keeping API requests largely stateless, using indexes for common queries and moving media bandwidth away from the application server. The documentation records known trade-offs, such as the stronger atomicity of QR claim compared with the separate two-party confirmation path. | [Architecture](docs/architecture.md) · [API specification](docs/api-spec.md) · [Profile design decisions](docs/profile-module-decisions.md) · [Order state machine](#order-payment--handover-state-machine) |
-| **7** | **Engineering practice and code quality (8%)** | Engineering controls are repository-wide: a pnpm monorepo, TypeScript linting, Flutter analysis/formatting, Husky checks, frozen/locked dependency installation in CI, Conventional Commits, semantic release/versioning, feature branches and PR review. Generated build outputs, dependency directories and local secret files are ignored rather than committed. | [Git workflow](docs/git-flow.md) · [CI/CD workflows](.github/workflows/) · [PR template](.github/PULL_REQUEST_TEMPLATE.md) · [`.gitignore`](.gitignore) |
-| **8** | **Testing strategy (10%)** | Testing is visible across the project lifecycle and across layers: backend Jest suites cover API/business rules, Flutter unit/provider/repository/service/widget/integration tests cover mobile behavior, and web regression tests cover critical flows and Worker-origin behavior. Dedicated verification notes document subsystem checks, and the repeatable API performance smoke test provides measured latency/error-rate evidence rather than an unsupported performance claim. | [Testing strategy](docs/testing-strategy/testing-strategy.md) · [Testing evidence](docs/testing-strategy/) · [API performance smoke](docs/testing-evidence/api-performance-smoke.md) · [Server tests](server/test/) · [Mobile tests](mobile/test/) · [Web tests](web/test/) |
+| **7** | **Engineering practice and code quality (8%)** | Engineering controls are repository-wide: a pnpm monorepo, TypeScript linting, Flutter analysis/formatting, Husky checks, frozen/locked dependency installation in CI, Conventional Commits, feature branches, PR review and automated release packaging. Generated build outputs, dependency directories and local secret files are ignored rather than committed. | [Git workflow](docs/git-flow.md) · [CI/CD workflows](.github/workflows/) · [PR template](.github/PULL_REQUEST_TEMPLATE.md) · [`.gitignore`](.gitignore) |
+| **8** | **Testing strategy (10%)** | Testing is visible across the project lifecycle and across layers: backend Jest suites cover API/business rules, Flutter unit/provider/repository/service/widget/integration tests cover mobile behavior, and web regression tests cover critical flows and Worker-origin behavior. The release/UAT workbook records the final manual matrix, targeted verification notes preserve subsystem evidence, and the repeatable API performance smoke test provides measured latency/error-rate evidence rather than an unsupported performance claim. | [Testing strategy](docs/testing-strategy/testing-strategy.md) · [Release/UAT workbook](docs/testing-strategy/kiwishare-release-test-results-v0.2.xlsx) · [Testing evidence](docs/testing-strategy/) · [API performance smoke](docs/testing-evidence/api-performance-smoke.md) · [Server tests](server/test/) · [Mobile tests](mobile/test/) · [Web tests](web/test/) |
 | **9** | **Security and privacy (4%)** | Security is addressed at system boundaries: JWT authentication, object/role authorization, bcrypt password hashing, rate limiting, validation/sanitisation, CORS controls, expiring single-use QR credentials, server-side secrets and restricted presigned media uploads. Security analysis is documented against OWASP-style risks, while location, identity, chat/media and notification data are treated as privacy-sensitive application data rather than exposed indiscriminately. | [Security / OWASP analysis](docs/security-owasp.md) · [Auth middleware](server/src/middleware/auth.ts) · [Error handling](server/src/middleware/error.ts) |
-| **10** | **Project management and teamwork (12%)** | The GitHub history demonstrates sustained project management rather than end-of-project documentation. The repository has **249 tracked issues (216 closed)** in the current snapshot, with work assigned across all five team members. Weekly-minutes responsibilities were themselves tracked as Issues **#28–#32**; the Wiki contains eight dated meeting records from July through September. Issue timelines show GitHub Project v2 status transitions, PRs link back to tasks, and human approvals are recorded on reviewed PRs. The agreed feature → `pre` → `main` workflow is documented and reinforced in meeting minutes. | [Issues](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues) · [#28](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues/28) · [#29](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues/29) · [#30](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues/30) · [#31](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues/31) · [#32](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues/32) · [Wiki minutes](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/wiki) · [Pull requests](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/pulls) · [Example Project-v2 task #343](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues/343) · [Git workflow](docs/git-flow.md) |
+| **10** | **Project management and teamwork (12%)** | Project management is visible in the repository history rather than reconstructed at the end. GitHub Issues are used for scoped work, ownership, priority and acceptance criteria; the Project board records status transitions; PRs preserve review, screenshots/demos, CI results and implementation rationale; and the Wiki records recurring meeting decisions and actions across the five-person team. The release model is feature/fix/docs branch → PR into `pre` → integration/QA → promotion PR `pre` → `main`, with production hotfixes synchronized back into `pre`. | [Project-management issue #260](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues/260) · [Issues](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/issues) · [Wiki minutes](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/wiki) · [Pull requests](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/pulls) · [Git workflow](docs/git-flow.md) |
 | **11** | **Deployment (8%)** | The system has realistic reachable deployment paths: the React/Vite client is hosted behind Cloudflare Workers at `kiwishare.online`, the Koa API is deployed on Render, R2 stores media and MongoDB Atlas persists application data. Android production artifacts are published through GitHub Releases, while the repository documents setup/build/run procedures so markers can reproduce or use the system without relying on one developer's machine. | [Deployment guide](docs/deployment.md) · [Production web](https://kiwishare.online) · [Production API](https://kiwishare.onrender.com) · [Android releases](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/releases) · [Demo guide](docs/demo-guide.md) |
 | **12** | **Communicating decisions — README and Wiki (6%)** | Project decisions are recorded in the repository instead of remaining only in chat. README provides setup, development, testing, production build and state-machine guidance; architecture/API/security/testing/deployment documents explain major technical areas; the Wiki records recurring team decisions and action items; PR descriptions preserve implementation rationale, verification and related issues. This creates an auditable trail from requirement/decision to implementation and test evidence. | [README](README.md) · [Documentation index](docs/) · [Wiki](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/wiki) · [Pull requests](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/pulls) · [CHANGELOG](CHANGELOG.md) |
 
@@ -124,10 +125,11 @@ KiwiShare deliberately goes beyond the baseline mobile/web CRUD patterns covered
    - Notification handling connects backend marketplace events to device-level FCM/APNs delivery.
    - **Why it matters:** this extends the app beyond foreground REST requests and required learning mobile platform configuration, tokens, permissions and asynchronous delivery behavior.
 
-8. **Automated monorepo CI/CD, signed Android releases and semantic versioning**
-   - Built GitHub Actions pipelines spanning backend, web and Flutter validation, plus production release automation.
+8. **Automated monorepo CI/CD and signed Android releases**
+   - Built path-scoped GitHub Actions pipelines spanning backend, web and Flutter validation, plus production release automation.
    - Production Android builds use a dedicated release keystore supplied through CI secrets and verify generated APK/AAB signatures before publication.
-   - `standard-version` and Conventional Commits are used to derive versions/changelogs and publish reproducible GitHub release artifacts.
+   - A merge/push to `main` runs the production release pipeline and publishes Android APK/AAB artifacts through GitHub Releases; iOS remains a macOS/Xcode build path and is not packaged by the current GitHub release workflow.
+   - Conventional Commits keep implementation history readable, while the release workflow owns production tag/version calculation and packaging.
    - **Why it matters:** deployment and release engineering became part of the implementation itself, reducing reliance on one developer's local machine and making the final system reproducible for assessors.
 
 9. **Native product deep links with branded web fallback**
@@ -186,7 +188,7 @@ All developers need:
 
 - **Node.js 22.23.2** (the version used by GitHub Actions)
 - **pnpm 9.15.9** (declared in `package.json`)
-- **Flutter 3.44.8 / Dart 3.12.2** (the version used by mobile and release workflows)
+- **Flutter 3.47.5 / Dart 3.13.4** (the toolchain pinned by mobile/release CI and used for the final freeze)
 - **Git**
 
 Check your environment:
@@ -238,42 +240,62 @@ flutter pub get
 
 for the Flutter client.
 
-CI uses `pnpm install --frozen-lockfile` and `flutter pub get --enforce-lockfile` so dependency resolution cannot silently update the committed lockfiles. The local `pnpm bootstrap` command remains convenient for development; review any lockfile changes before committing them. GitHub Actions verification is pending while the organisation's CI quota is unavailable.
+CI uses `pnpm install --frozen-lockfile` and `flutter pub get --enforce-lockfile` so dependency resolution cannot silently update the committed lockfiles. The local `pnpm bootstrap` command remains convenient for development; review any lockfile changes before committing them. GitHub Actions currently validates backend, web and mobile changes with path-scoped workflows on `pre`/`main` pushes and pull requests.
 
 ---
 
 # Backend Environment
 
-Create the backend environment file:
+The backend loads private runtime configuration from:
+
+```text
+server/.env
+```
+
+`server/.env` is intentionally ignored by Git and must never be committed.
+
+## Course marker / private-information ZIP
+
+For course assessment, the separately submitted private-information ZIP contains the real `server/.env` using the same repository-relative path. From the repository root, extract the ZIP so the final path is exactly:
+
+```text
+project-implementation-five-guys/
+└── server/
+    └── .env
+```
+
+For example:
+
+```bash
+unzip FiveGuys-private-information.zip -d .
+test -f server/.env && echo "server/.env ready"
+```
+
+If you do **not** have the private bundle, create a local file from the safe template instead:
 
 ```bash
 cp server/.env.example server/.env
 ```
 
-Then configure `server/.env`.
+Then provide your own credentials.
 
-Example:
+### Environment-variable groups
 
-```env
-NODE_ENV=development
-PORT=3000
+| Purpose | Variables | Required behaviour |
+|---|---|---|
+| Core API / auth | `JWT_SECRET`, `NODE_ENV`, `PORT` | `JWT_SECRET` must be a non-placeholder secret; `PORT` defaults to the local API port used by the project |
+| MongoDB | `MONGODB_URI`, `MONGODB_URI_TEST` | Required for normal API data and integration/test database access |
+| Email | `RESEND_API_KEY`, `RESEND_FROM`, `DISABLE_OUTBOUND_EMAIL` | Provider credentials enable real transactional delivery; set `DISABLE_OUTBOUND_EMAIL=true` when you want to exercise business flows without sending real email |
+| Chat moderation | `CHAT_BLOCKED_TERMS` | Optional comma-separated additions to the built-in moderation list |
+| Media / R2 | `R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_PUBLIC_URL` | Required for real image/audio object-storage upload flows |
+| Payments | `STRIPE_PAYMENT_API_KEY` | Required for Stripe-backed payment flows; use test credentials for coursework/demo use |
+| AI listing assistant | `GEMINI_API_KEY`, `GEMINI_MODEL` | Current model configuration is `gemini-3.5-flash-lite` |
+| Push delivery (optional) | `FIREBASE_PROJECT_ID` + `FIREBASE_SERVICE_ACCOUNT_JSON`, or `GOOGLE_APPLICATION_CREDENTIALS` | Without Firebase Admin credentials, server-side FCM delivery is disabled gracefully; the core API still runs |
+| Google identity audiences | `GOOGLE_OAUTH_CLIENT_IDS` | Optional override; OAuth client IDs are public identifiers, not secrets |
 
-MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/kiwishare_prod
-MONGODB_URI_TEST=mongodb+srv://<username>:<password>@<cluster>/kiwishare_test
+The React web app does **not** require a private `web/.env` for the submitted project. Its `VITE_FIREBASE_*` values are public client configuration and are documented in `web/.env.example` / CI. Likewise, `mobile/android/app/google-services.json` and `mobile/ios/Runner/GoogleService-Info.plist` are already tracked application configuration. Production signing keys and Android keystores are CI secrets and are not part of the marker runtime bundle.
 
-JWT_SECRET=<your-secret>
-
-RESEND_API_KEY=<optional>
-RESEND_FROM=<optional>
-
-# Optional AI listing suggestions (server-side only)
-GEMINI_API_KEY=<optional>
-GEMINI_MODEL=gemini-3.5-flash-lite
-```
-
-> Never commit `server/.env` or credentials to Git.
-
-During development, the backend uses the configured development/test MongoDB database.
+> Keep the assessment ZIP private. Do not attach `server/.env` to GitHub issues/PRs, commit it, or paste its real values into screenshots or logs.
 
 Run the backend alone:
 
@@ -579,13 +601,7 @@ https://kiwishare.onrender.com
 
 # Testing
 
-Run all automated tests:
-
-```bash
-pnpm test:all
-```
-
-Or individually:
+Automated verification is split by application layer.
 
 ### Flutter
 
@@ -598,6 +614,39 @@ pnpm mobile:test
 ```bash
 pnpm server:test
 ```
+
+### React Web regression tests
+
+```bash
+pnpm --filter web run test
+```
+
+The root convenience command:
+
+```bash
+pnpm test:all
+```
+
+runs **Flutter + backend** tests. Run the web test command separately when validating the complete monorepo.
+
+Before a release/promotion PR, the practical local verification set is:
+
+```bash
+pnpm lint:all
+pnpm test:all
+pnpm --filter web run test
+pnpm server:build
+pnpm web:build
+```
+
+GitHub Actions then provides platform-independent evidence:
+
+- **Mobile CI** — Flutter dependency lock enforcement, `flutter analyze`, Dart formatting, Flutter tests and Android release-build verification where applicable.
+- **Backend CI** — frozen pnpm install, ESLint, TypeScript build and Jest.
+- **Web CI** — frozen pnpm install, ESLint/TypeScript, Node regression tests and Vite production build.
+- **Release pipeline** — production Android signing preflight, APK/AAB builds, signature verification and GitHub Release publication on `main`.
+
+Final manual/UAT evidence is tracked in [`docs/testing-strategy/kiwishare-release-test-results-v0.2.xlsx`](docs/testing-strategy/kiwishare-release-test-results-v0.2.xlsx), with targeted subsystem evidence under [`docs/testing-strategy/`](docs/testing-strategy/) and repeatable API performance evidence under [`docs/testing-evidence/`](docs/testing-evidence/).
 
 ---
 
@@ -685,13 +734,13 @@ pnpm web:build
 pnpm server:build
 ```
 
-## Full Build
+## Full local build
 
 ```bash
 pnpm build:all
 ```
 
-> Platform-specific builds still require the appropriate platform toolchain.
+> Platform-specific builds still require the appropriate platform toolchain. The automated production release workflow currently publishes **Android APK + AAB only**. iOS is still buildable on macOS/Xcode through `pnpm mobile:build:ios`, but is intentionally not packaged by GitHub Actions.
 
 ---
 
@@ -744,7 +793,8 @@ The server writes proposalStatus: confirmed; clients also read legacy accepted a
 | Web Application | React / TypeScript / Vite |
 | Backend | Node.js / Koa / TypeScript |
 | Database | MongoDB Atlas |
-| Authentication / Mobile Services | Firebase |
+| Authentication | Backend JWT sessions + Firebase/Google identity integration |
+| Push / Remote Config | Firebase |
 | Email | Resend |
 | Object Storage | Cloudflare R2 |
 | Deployment | Cloudflare Workers (web) + Render (API) |
@@ -772,6 +822,14 @@ Project documentation is kept in `docs/`.
 ### Security
 
 [OWASP Security Notes](./docs/security-owasp.md)
+
+### Testing & release evidence
+
+[Testing Strategy](./docs/testing-strategy/testing-strategy.md) · [Release/UAT Workbook](./docs/testing-strategy/kiwishare-release-test-results-v0.2.xlsx) · [API Performance Evidence](./docs/testing-evidence/api-performance-smoke.md)
+
+### Deployment & collaboration
+
+[Deployment Guide](./docs/deployment.md) · [Git / Release Workflow](./docs/git-flow.md) · [Demo Guide](./docs/demo-guide.md)
 
 ### Data Contracts
 
@@ -853,33 +911,77 @@ navigation and developer onboarding
 
 ---
 
-# Git Workflow
+# Project Management & Git Workflow
 
-Before starting work:
+KiwiShare uses GitHub as the auditable project-management system rather than only as source hosting.
+
+| Activity | Source of truth |
+|---|---|
+| Planned/scoped work, bugs, priorities and owners | GitHub Issues + Project board |
+| Implementation and review | Feature/fix/docs branches + Pull Requests |
+| Automated quality gates | GitHub Actions |
+| Weekly decisions, coordination and action items | GitHub Wiki meeting minutes |
+| Final technical decisions/evidence | README + `docs/` |
+| Production history | `main` + GitHub Releases |
+
+## Normal change flow
+
+```text
+Issue / acceptance criteria
+        ↓
+branch from latest pre
+        ↓
+feature/*, fix/*, docs/*, test/*, chore/*
+        ↓
+local lint/tests + evidence
+        ↓
+Pull Request → pre
+        ↓
+peer review + CI + integration/QA
+        ↓
+release promotion PR: pre → main
+        ↓
+production release workflow
+        ↓
+main synchronized back into pre when required
+```
+
+Before starting normal work:
 
 ```bash
-git pull
+git switch pre
+git pull origin pre
+git switch -c <type>/<short-name>
 pnpm bootstrap
 ```
 
-Create or switch to the appropriate feature branch.
-
-Before opening a pull request:
+Before opening a PR:
 
 ```bash
 pnpm lint:all
 pnpm test:all
+pnpm --filter web run test
 ```
+
+PRs should link the relevant issue, explain the change and validation, and include screenshots/demo evidence for user-visible work. The repository PR template captures these expectations.
+
+## Release / freeze discipline
+
+During the final coursework freeze, `pre` is the integration source for the release candidate. The team should avoid unrelated feature work and merge only verified blocker fixes, release evidence and documentation updates. The final promotion is a reviewed PR from `pre` to `main`.
+
+A push/merge to `main` triggers the production release workflow, which validates Android signing, builds signed APK/AAB artifacts, verifies signatures and publishes the GitHub Release. iOS is **not** part of the current automated release package; it remains a macOS/Xcode build path. The production web deployment has its own Cloudflare workflow, while the backend is deployed independently on Render.
+
+Production hotfixes branch from `main`, return through review, and must be synchronized back into `pre` so the integration branch does not lose production fixes.
+
+See [`docs/git-flow.md`](docs/git-flow.md) for the branch/release details and the [GitHub Wiki](https://github.com/UOA-CS734-S2-2026/project-implementation-five-guys/wiki) for the team coordination record.
 
 Do not commit:
 
-- `.env`
-- credentials
-- API secrets
+- `.env` files or private credentials
+- API/server secrets
+- signing keystores or signing passwords
 - local SDK paths
 - IDE-specific machine configuration
-
-Development tooling should remain portable across team members wherever possible.
 
 ---
 
