@@ -97,5 +97,25 @@ The item-detail screenshot also records `KS-T-031` seller identity evidence: sel
 
 - `KS-T-006`: OTP email, invalid/expired OTP error, and resend countdown.
 - `KS-T-009`: signed-out Chat and Watchlist screens require authentication.
+- `KS-T-067`: Rui's evidence shows physical-iPhone order, payment, meetup, reporting and seller-profile states, plus Android reports, profile and marketplace discovery.
+- `KS-T-068`: Sam's physical-iPhone screenshot shows an authenticated own-listing detail page and the owner watchlist restriction.
+- `KS-T-058`, `KS-T-060`, `KS-T-061`: Android dark-mode screenshots show login, marketplace discovery and Watchlist error/Retry states.
+
+Rui physical-device photographs:
+
+- [`ks-t-067-rui-orders-physical-iphone.jpg`](./screenshots/2026-10-03/ks-t-067-rui-orders-physical-iphone.jpg)
+- [`ks-t-067-rui-trade-chat-physical-iphone.jpg`](./screenshots/2026-10-03/ks-t-067-rui-trade-chat-physical-iphone.jpg)
+- [`ks-t-067-rui-report-listing-iphone.jpg`](./screenshots/2026-10-03/ks-t-067-rui-report-listing-iphone.jpg)
+- [`ks-t-067-rui-public-profile-iphone.jpg`](./screenshots/2026-10-03/ks-t-067-rui-public-profile-iphone.jpg)
+- [`ks-t-067-rui-reports-android.png`](./screenshots/2026-10-03/ks-t-067-rui-reports-android.png)
+- [`ks-t-067-rui-profile-android.png`](./screenshots/2026-10-03/ks-t-067-rui-profile-android.png)
+- [`ks-t-067-rui-home-android.png`](./screenshots/2026-10-03/ks-t-067-rui-home-android.png)
+- [`ks-t-068-sam-own-listing-watchlist-iphone.jpg`](./screenshots/2026-10-03/ks-t-068-sam-own-listing-watchlist-iphone.jpg)
+
+Android dark-mode screenshots:
+
+- [`ks-t-058-dark-login-android.png`](./screenshots/2026-10-03/ks-t-058-dark-login-android.png)
+- [`ks-t-060-dark-home-android.png`](./screenshots/2026-10-03/ks-t-060-dark-home-android.png)
+- [`ks-t-061-dark-watchlist-error-android.png`](./screenshots/2026-10-03/ks-t-061-dark-watchlist-error-android.png)
 
 Privacy-sensitive email addresses are redacted in repository screenshots. One-time OTP values are retained as test evidence.
