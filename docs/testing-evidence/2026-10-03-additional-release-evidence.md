@@ -124,9 +124,8 @@ Privacy-sensitive email addresses are redacted in repository screenshots. One-ti
 
 - Jenny: iPhone 17
 - Jack: iPhone 16 Pro, iOS 26.6.2
-- Luna: iPhone 15
+- Rui: iPhone 15
 - Sam: iPhone, model not recorded
-- Rui: iPhone, model not recorded
 - Jaeger: Samsung S24 Ultra, Android version not recorded
 
 ## Additional physical-device evidence
