@@ -127,4 +127,17 @@ Privacy-sensitive email addresses are redacted in repository screenshots. One-ti
 - Luna: iPhone 15
 - Sam: iPhone, model not recorded
 - Rui: iPhone, model not recorded
-- Jaeger: Samsung Android phone, model and Android version not recorded
+- Jaeger: Samsung S24 Ultra, Android version not recorded
+
+## Additional physical-device evidence
+
+- `KS-T-071`: Jack's iPhone 16 Pro running iOS 26.6.2 shows the dark-mode listing flow, including a one-photo upload, completed title and description, category, price, Auckland location, condition, sustainable-item control and the `Post item` action. The same device then shows the resulting marketplace listing and item-detail view.
+- `KS-T-072`: Jaeger's Samsung S24 Ultra shows the authenticated Chat list with All, Unread, Buying and Selling filters, multiple item-linked conversations and an unread-count badge.
+
+Screenshots:
+
+- [`ks-t-071-jack-list-item-dark-iphone16pro.jpg`](./screenshots/2026-10-03/ks-t-071-jack-list-item-dark-iphone16pro.jpg)
+- [`ks-t-071-jack-list-item-fields-dark-iphone16pro.jpg`](./screenshots/2026-10-03/ks-t-071-jack-list-item-fields-dark-iphone16pro.jpg)
+- [`ks-t-071-jack-marketplace-dark-iphone16pro.jpg`](./screenshots/2026-10-03/ks-t-071-jack-marketplace-dark-iphone16pro.jpg)
+- [`ks-t-071-jack-item-detail-dark-iphone16pro.jpg`](./screenshots/2026-10-03/ks-t-071-jack-item-detail-dark-iphone16pro.jpg)
+- [`ks-t-072-jaeger-chat-list-samsung-s24-ultra.jpg`](./screenshots/2026-10-03/ks-t-072-jaeger-chat-list-samsung-s24-ultra.jpg)
