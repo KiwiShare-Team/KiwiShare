@@ -124,7 +124,25 @@ Privacy-sensitive email addresses are redacted in repository screenshots. One-ti
 
 - Jenny: iPhone 17
 - Jack: iPhone 16 Pro, iOS 26.6.2
-- Luna: iPhone 15
+- Rui: iPhone 15
 - Sam: iPhone, model not recorded
-- Rui: iPhone, model not recorded
-- Jaeger: Samsung Android phone, model and Android version not recorded
+- Jaeger: Samsung S24 Ultra, Android version not recorded
+
+## Additional physical-device evidence
+
+- `KS-T-071`: Jack's iPhone 16 Pro running iOS 26.6.2 shows the dark-mode listing flow, including a one-photo upload, completed title and description, category, price, Auckland location, condition, sustainable-item control and the `Post item` action. The same device then shows the resulting marketplace listing and item-detail view.
+- `KS-T-072`: Jaeger's Samsung S24 Ultra shows the authenticated Chat list with All, Unread, Buying and Selling filters, multiple item-linked conversations and an unread-count badge.
+- `KS-T-073`: Jaeger's Samsung S24 Ultra provides additional Android chat evidence for `KS-T-039` (photo messages), `KS-T-040` (voice messages), `KS-T-061` (dark-mode chat) and `KS-T-069` (Android physical-device regression). The conversation shows two image messages and a 0:02 voice message in both dark and light mode, with the chat composer visible.
+- `KS-T-074`: Jaeger's Samsung S24 Ultra shows seller-side listing status synchronisation in chat. After the seller removes the `Motorcycle combo` listing, the conversation displays `DELISTED`, the seller action confirmation, and the available `Relist Item` action. This supplements the chat/listing lifecycle evidence without being counted as a completed trade.
+
+Screenshots:
+
+- [`ks-t-071-jack-list-item-dark-iphone16pro.jpg`](./screenshots/2026-10-03/ks-t-071-jack-list-item-dark-iphone16pro.jpg)
+- [`ks-t-071-jack-list-item-fields-dark-iphone16pro.jpg`](./screenshots/2026-10-03/ks-t-071-jack-list-item-fields-dark-iphone16pro.jpg)
+- [`ks-t-071-jack-marketplace-dark-iphone16pro.jpg`](./screenshots/2026-10-03/ks-t-071-jack-marketplace-dark-iphone16pro.jpg)
+- [`ks-t-071-jack-item-detail-dark-iphone16pro.jpg`](./screenshots/2026-10-03/ks-t-071-jack-item-detail-dark-iphone16pro.jpg)
+- [`ks-t-072-jaeger-chat-list-samsung-s24-ultra.jpg`](./screenshots/2026-10-03/ks-t-072-jaeger-chat-list-samsung-s24-ultra.jpg)
+- [`ks-t-073-jaeger-chat-photo-voice-dark-samsung-s24-ultra.jpg`](./screenshots/2026-10-03/ks-t-073-jaeger-chat-photo-voice-dark-samsung-s24-ultra.jpg)
+- [`ks-t-073-jaeger-chat-photo-voice-light-samsung-s24-ultra.jpg`](./screenshots/2026-10-03/ks-t-073-jaeger-chat-photo-voice-light-samsung-s24-ultra.jpg)
+- [`ks-t-073-jaeger-chat-paid-photo-light-samsung-s24-ultra.jpg`](./screenshots/2026-10-03/ks-t-073-jaeger-chat-paid-photo-light-samsung-s24-ultra.jpg)
+- [`ks-t-074-jaeger-chat-delisted-relist-samsung-s24-ultra.jpg`](./screenshots/2026-10-03/ks-t-074-jaeger-chat-delisted-relist-samsung-s24-ultra.jpg)
